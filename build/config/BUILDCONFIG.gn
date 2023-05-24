@@ -32,6 +32,8 @@ if (current_os == "") {
   current_os = target_os
 }
 
+print(current_cpu, "/", target_cpu, " - ", current_os, "/", target_os)
+
 _build_overrides = {
   import("//build_overrides/build.gni")
 }

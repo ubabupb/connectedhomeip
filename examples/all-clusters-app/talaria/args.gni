@@ -23,3 +23,10 @@ chip_system_project_config_include = "<SystemProjectConfig.h>"
 chip_project_config_include_dirs =
     [ "${chip_root}/examples/all-clusters-app/linux/include" ]
 chip_project_config_include_dirs += [ "${chip_root}/config/standalone" ]
+
+declare_args() {
+    custom_toolchain = "../toolchain/arm_gcc:arm_gcc"
+    target_cpu = "talaria"
+    target_os = "freertos"
+
+}
