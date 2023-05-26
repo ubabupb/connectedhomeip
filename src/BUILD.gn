@@ -21,6 +21,8 @@ import("${chip_root}/src/ble/ble.gni")
 import("${chip_root}/src/lwip/lwip.gni")
 import("${chip_root}/src/platform/device.gni")
 
+print("---------- 5 ----------")
+
 declare_args() {
   # Build monolithic test library.
   chip_monolithic_tests = false

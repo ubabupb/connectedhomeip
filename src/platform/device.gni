@@ -25,6 +25,8 @@ declare_args() {
   chip_fake_platform = false
 }
 
+# print(chip_device_platform, current_os)
+
 if (chip_device_platform == "auto") {
   if (chip_fake_platform) {
     chip_device_platform = "fake"
@@ -223,6 +225,7 @@ declare_args() {
 
 assert(
     (current_os != "freertos" && chip_device_platform == "none") ||
+        chip_device_platform == "talaria" ||
         chip_device_platform == "fake" ||
         chip_device_platform == "cc13x2_26x2" ||
         chip_device_platform == "cc13x4_26x4" ||

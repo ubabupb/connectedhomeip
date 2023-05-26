@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+print("---------- 6 ----------")
 import("//build_overrides/chip.gni")
 
 import("${chip_root}/src/app/chip_data_model.gni")
