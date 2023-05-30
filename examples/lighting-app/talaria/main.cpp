@@ -16,16 +16,16 @@
  *    limitations under the License.
  */
 
-#include "LightingManager.h"
-#include <AppMain.h>
+// #include "LightingManager.h"
+// #include <AppMain.h>
 
-#include <app-common/zap-generated/ids/Attributes.h>
-#include <app-common/zap-generated/ids/Clusters.h>
-#include <app/ConcreteAttributePath.h>
-#include <app/clusters/network-commissioning/network-commissioning.h>
-#include <app/server/Server.h>
-#include <lib/support/logging/CHIPLogging.h>
-#include <platform/Linux/NetworkCommissioningDriver.h>
+// #include <app-common/zap-generated/ids/Attributes.h>
+// #include <app-common/zap-generated/ids/Clusters.h>
+// #include <app/ConcreteAttributePath.h>
+// #include <app/clusters/network-commissioning/network-commissioning.h>
+// #include <app/server/Server.h>
+// #include <lib/support/logging/CHIPLogging.h>
+// #include <platform/Linux/NetworkCommissioningDriver.h>
 
 #if defined(CHIP_IMGUI_ENABLED) && CHIP_IMGUI_ENABLED
 #include <imgui_ui/ui.h>
@@ -35,9 +35,9 @@
 
 #endif
 
-using namespace chip;
-using namespace chip::app;
-using namespace chip::app::Clusters;
+// using namespace chip;
+// using namespace chip::app;
+// using namespace chip::app::Clusters;
 
 #if CHIP_DEVICE_CONFIG_ENABLE_WPA
 namespace {
@@ -46,14 +46,14 @@ Clusters::NetworkCommissioning::Instance sWiFiNetworkCommissioningInstance(0, &s
 } // namespace
 #endif
 
-void MatterPostAttributeChangeCallback(const chip::app::ConcreteAttributePath & attributePath, uint8_t type, uint16_t size,
-                                       uint8_t * value)
-{
-    if (attributePath.mClusterId == OnOff::Id && attributePath.mAttributeId == OnOff::Attributes::OnOff::Id)
-    {
-        LightingMgr().InitiateAction(*value ? LightingManager::ON_ACTION : LightingManager::OFF_ACTION);
-    }
-}
+// void MatterPostAttributeChangeCallback(const chip::app::ConcreteAttributePath & attributePath, uint8_t type, uint16_t size,
+//                                        uint8_t * value)
+// {
+//     if (attributePath.mClusterId == OnOff::Id && attributePath.mAttributeId == OnOff::Attributes::OnOff::Id)
+//     {
+//         LightingMgr().InitiateAction(*value ? LightingManager::ON_ACTION : LightingManager::OFF_ACTION);
+//     }
+// }
 
 /** @brief OnOff Cluster Init
  *
@@ -70,44 +70,82 @@ void MatterPostAttributeChangeCallback(const chip::app::ConcreteAttributePath & 
  * emberAfPluginOnOffClusterServerPostInitCallback.
  *
  */
-void emberAfOnOffClusterInitCallback(EndpointId endpoint)
-{
-    // TODO: implement any additional Cluster Server init actions
-}
+// void emberAfOnOffClusterInitCallback(EndpointId endpoint)
+// {
+//     // TODO: implement any additional Cluster Server init actions
+// }
 
-void ApplicationInit()
-{
-#if CHIP_DEVICE_CONFIG_ENABLE_WPA
-    sWiFiNetworkCommissioningInstance.Init();
+// void ApplicationInit()
+// {
+// #if CHIP_DEVICE_CONFIG_ENABLE_WPA
+//     sWiFiNetworkCommissioningInstance.Init();
+// #endif
+// }
+// #include <cstdio>
+// #include "stdio.h"
+
+// int test_count = 1;
+
+// int main(int argc, char * argv[])
+// {
+//     // printf("\nhello world ..............\n");
+// //     if (ChipLinuxAppInit(argc, argv) != 0)
+// //     {
+// //         return -1;
+// //     }
+
+// //     CHIP_ERROR err = LightingMgr().Init();
+// //     if (err != CHIP_NO_ERROR)
+// //     {
+// //         ChipLogError(AppServer, "Failed to initialize lighting manager: %" CHIP_ERROR_FORMAT, err.Format());
+// //         chip::DeviceLayer::PlatformMgr().Shutdown();
+// //         return -1;
+// //     }
+
+// // #if defined(CHIP_IMGUI_ENABLED) && CHIP_IMGUI_ENABLED
+// //     example::Ui::ImguiUi ui;
+
+// //     ui.AddWindow(std::make_unique<example::Ui::Windows::QRCode>());
+// //     ui.AddWindow(std::make_unique<example::Ui::Windows::OccupancySensing>(chip::EndpointId(1), "Occupancy"));
+// //     ui.AddWindow(std::make_unique<example::Ui::Windows::Light>(chip::EndpointId(1)));
+
+// //     ChipLinuxAppMainLoop(&ui);
+// // #else
+// //     ChipLinuxAppMainLoop();
+// // #endif
+
+//     while(1) {
+//         test_count++;
+//     }
+
+//     return 0;
+// }
+
+#ifdef __cplusplus
+    extern "C" {
 #endif
-}
 
-int main(int argc, char * argv[])
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include <talaria_two.h>
+
+/*-----------------------------------------------------------*/
+int main( void )
 {
-    if (ChipLinuxAppInit(argc, argv) != 0)
-    {
-        return -1;
+    unsigned int g_count_1 = 0, g_count_2 = 1;
+
+    while(1) {
+        while(g_count_1++ < 0xFFFFFF);
+        os_printf("\n Hello MATTER %d !!! \n", g_count_2++);
+        g_count_1 = 0;
     }
-
-    CHIP_ERROR err = LightingMgr().Init();
-    if (err != CHIP_NO_ERROR)
-    {
-        ChipLogError(AppServer, "Failed to initialize lighting manager: %" CHIP_ERROR_FORMAT, err.Format());
-        chip::DeviceLayer::PlatformMgr().Shutdown();
-        return -1;
-    }
-
-#if defined(CHIP_IMGUI_ENABLED) && CHIP_IMGUI_ENABLED
-    example::Ui::ImguiUi ui;
-
-    ui.AddWindow(std::make_unique<example::Ui::Windows::QRCode>());
-    ui.AddWindow(std::make_unique<example::Ui::Windows::OccupancySensing>(chip::EndpointId(1), "Occupancy"));
-    ui.AddWindow(std::make_unique<example::Ui::Windows::Light>(chip::EndpointId(1)));
-
-    ChipLinuxAppMainLoop(&ui);
-#else
-    ChipLinuxAppMainLoop();
-#endif
 
     return 0;
 }
+
+#ifdef __cplusplus
+    }
+#endif
+
+/*-----------------------------------------------------------*/
