@@ -137,7 +137,8 @@ int main( void )
 
     while(1) {
         while(g_count_1++ < 0xFFFFFF);
-        os_printf("\n Hello MATTER %d !!! \n", g_count_2++);
+        os_printf("\n Hello MATTER - %d !!!=== \n", g_count_2);
+        g_count_2++;
         g_count_1 = 0;
     }
 
