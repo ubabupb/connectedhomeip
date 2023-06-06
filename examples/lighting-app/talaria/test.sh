@@ -1,9 +1,0 @@
-# echo compiling
-# arm-none-eabi-gcc -c main.cpp
-# echo linking
-# arm-none-eabi-ld -Map out/hello_world.map -L/home/osboxes/InnoPhase/t2/freertos_t2/freertos_embedded_apps/components -L/home/unni/work/git/freertos_sdk/libs -L/home/unni/work/git/freertos_sdk/libs/arm -L/home/unni/work/git/freertos_sdk/build -T/home/unni/work/git/freertos_sdk/build/standalone.lds --entry _start -zmax-page-size=256 main.o --start-group -lfreertos -lc -linnos -lfs -losal --end-group /usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a -o main.elf
-
-echo compiling
-arm-none-eabi-g++ -mthumb -mcpu=cortex-m3 -MD -MMD -g -nostdinc -Wno-address-of-packed-member -ffunction-sections -fdata-sections -fno-common -Wshadow -Wnull-dereference -Warray-bounds=2 -Os -Wall -Werror -Wno-unused-variable -Wno-unused-function -fno-exceptions -I/home/unni/work/git/freertos_sdk_test/include/libc/include -I/home/unni/work/git/freertos_sdk_test/include -I/home/unni/work/git/freertos_sdk_test/include/arm -I/home/unni/work/git/freertos_sdk_test/FreeRTOS-Kernel/include -I/home/unni/work/git/freertos_sdk_test/FreeRTOS-Kernel/portable/GCC/ARM_CM3 -I/home/unni/work/git/freertos_sdk_test/include/innos_osal/inc -I/home/unni/work/git/freertos_sdk_test/include/lwip2/include -I/home/unni/work/git/freertos_sdk_test/core/innos_osal/inc -c /home/unni/work/hub/matter/connectedhomeip/examples/lighting-app/talaria/main.cpp -o main.o
-echo linking
-arm-none-eabi-ld -Map out/wifi_connect.map -L/home/unni/work/git/freertos_sdk_test/libs -L/home/unni/work/git/freertos_sdk_test/libs/arm -L/home/unni/work/git/freertos_sdk_test/build -T/home/unni/work/git/freertos_sdk_test/build/standalone.lds --entry _start -zmax-page-size=256 main.o --start-group -lwifi -lrfdrv -llwip2 -lsupplicant -lfreertos -lc -linnos -lfs -losal --end-group /usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a -o main.elf

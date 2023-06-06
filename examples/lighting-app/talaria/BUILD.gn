@@ -34,72 +34,10 @@ config("includes") {
   ]
 }
 
-# executable("chip-lighting-app_exe") {
-#   deps = [
-#     ":chip-lighting-app_sl"
-#   ]
-#   sources = [
-#     # "include/CHIPProjectAppConfig.h",
-#     "main.cpp",
-#   ]
-
-#   ldflags = [
-#     #   # "-Map",
-#       # "-L/home/unni/work/git/freertos_sdk_test/libs",
-#       # "-L/home/unni/work/git/freertos_sdk_test/libs/arm",
-#       # "-L/home/unni/work/git/freertos_sdk_test/build",
-#     #   "-T/home/unni/work/git/freertos_sdk_test/build/standalone.lds",
-#       # "--entry _start",
-#     #   "-zmax-page-size=256 main.o",
-#     #   "--start-group",
-#       # "-lwifi1",
-#       # "1111111111",
-#     #   "-lwifi",
-#     #   "-lrfdrv",
-#     #   "-llwip2",
-#     #   "-lsupplicant",
-#     #   "-lfreertos",
-#     #   "-lc",
-#     #   "-linnos",
-#     #   "-lfs",
-#     #   "-losal",
-#       # "--end-group",
-#       # "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
-#     ]
-
-#     lib_dirs = [
-#       "/home/unni/work/git/freertos_sdk_test/libs",
-#       "/home/unni/work/git/freertos_sdk_test/libs/arm",
-#       "/home/unni/work/git/freertos_sdk_test/build",
-#     ]
-
-#     libs = [
-#       "/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
-#       "/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
-#       "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
-#     ]
-# }
-
-# static_library("chip-lighting-app_sl") {
-#   sources = [
-#     # "include/CHIPProjectAppConfig.h",
-#     "main.cpp",
-#   ]
-
-# }
-
-# executable("chip-lighting-app") {
-static_library("chip-lighting-app_sl") {
+static_library("chip-lighting-app") {
   sources = [
     # "include/CHIPProjectAppConfig.h",
     "main.cpp",
-  ]
-
-  deps = [
-    # "${chip_root}/examples/lighting-app/lighting-common",
-    # "${chip_root}/examples/lighting-app/lighting-common:lighting-manager",
-    # "${chip_root}/examples/platform/linux:app-main",
-    # "${chip_root}/src/lib",
   ]
 
   if (chip_examples_enable_imgui_ui) {
@@ -163,11 +101,9 @@ static_library("chip-lighting-app_sl") {
     deps += pw_build_LINK_DEPS
 
     include_dirs += [ "${chip_root}/examples/common" ]
-    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx")
   } else {
     # The system_rpc_server.cc file is in pigweed and doesn't compile with
     # -Wconversion, remove check for RPC build only.
-    print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
     # cflags = [ "-Wconversion" ]
     cflags = [ "-mcpu=cortex-m3" ]
     cflags += [ "-MD" ]
@@ -187,50 +123,13 @@ static_library("chip-lighting-app_sl") {
     cflags += [ "-Wno-unused-variable" ]
     cflags += [ "-Wno-unused-function" ]
     cflags += [ "-fno-exceptions" ]
-
-    # ldflags = [
-    #   # "-Map",
-      # "-L/home/unni/work/git/freertos_sdk_test/libs",
-      # "-L/home/unni/work/git/freertos_sdk_test/libs/arm",
-      # "-L/home/unni/work/git/freertos_sdk_test/build",
-    #   "-T/home/unni/work/git/freertos_sdk_test/build/standalone.lds",
-      # "--entry _start",
-    #   "-zmax-page-size=256 main.o",
-    #   "--start-group",
-      # "-lwifi1",
-      # "1111111111",
-    #   "-lwifi",
-    #   "-lrfdrv",
-    #   "-llwip2",
-    #   "-lsupplicant",
-    #   "-lfreertos",
-    #   "-lc",
-    #   "-linnos",
-    #   "-lfs",
-    #   "-losal",
-      # "--end-group",
-      # "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
-    # ]
-
-    lib_dirs = [
-      "/home/unni/work/git/freertos_sdk_test/libs",
-      # "222222222",
-      "/home/unni/work/git/freertos_sdk_test/libs/arm",
-      "/home/unni/work/git/freertos_sdk_test/build",
-    ]
-
-    libs = [
-      # -/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a
-      # "/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
-      # "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
-    ]
   }
 
   output_dir = root_out_dir
 }
 
 group("talaria") {
-  deps = [ ":chip-lighting-app_sl" ]
+  deps = [ ":chip-lighting-app" ]
 }
 
 group("default") {
