@@ -1,0 +1,4 @@
+Archive member included to satisfy reference by file (symbol)
+
+/home/unni/work/git/freertos_sdk_test/libs/libc.a(memset_v7m.o)
+                              /home/unni/work/hub/matter/connectedhomeip/.environment/cipd/packages/arm/bin/../lib/gcc/arm-none-eabi/12.2.1/../../../../arm-none-eabi/lib/crt0.o (memset)

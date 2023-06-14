@@ -1,0 +1,238 @@
+# Copyright (c) 2020 Project CHIP Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build_overrides/chip.gni")
+
+import("${chip_root}/build/chip/tools.gni")
+import("${chip_root}/src/app/common_flags.gni")
+import("${chip_root}/third_party/imgui/imgui.gni")
+
+# assert(chip_build_tools)
+
+import("${chip_root}/examples/common/pigweed/pigweed_rpcs.gni")
+
+if (chip_enable_pw_rpc) {
+  import("//build_overrides/pigweed.gni")
+  import("$dir_pw_build/target_types.gni")
+}
+
+config("includes") {
+  include_dirs = [
+    ".",
+    "include",
+  ]
+}
+
+# executable("chip-lighting-app_exe") {
+#   deps = [
+#     ":chip-lighting-app_sl"
+#   ]
+#   sources = [
+#     # "include/CHIPProjectAppConfig.h",
+#     "main.cpp",
+#   ]
+
+#   ldflags = [ 
+#     #   # "-Map",
+#       # "-L/home/unni/work/git/freertos_sdk_test/libs",
+#       # "-L/home/unni/work/git/freertos_sdk_test/libs/arm",
+#       # "-L/home/unni/work/git/freertos_sdk_test/build",
+#     #   "-T/home/unni/work/git/freertos_sdk_test/build/standalone.lds",
+#       # "--entry _start",
+#     #   "-zmax-page-size=256 main.o",
+#     #   "--start-group",
+#       # "-lwifi1",
+#       # "1111111111",
+#     #   "-lwifi", 
+#     #   "-lrfdrv",
+#     #   "-llwip2",
+#     #   "-lsupplicant",
+#     #   "-lfreertos",
+#     #   "-lc",
+#     #   "-linnos",
+#     #   "-lfs",
+#     #   "-losal",
+#       # "--end-group",
+#       # "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
+#     ]
+
+#     lib_dirs = [ 
+#       "/home/unni/work/git/freertos_sdk_test/libs",
+#       "/home/unni/work/git/freertos_sdk_test/libs/arm",
+#       "/home/unni/work/git/freertos_sdk_test/build",
+#     ]
+
+#     libs = [ 
+#       "/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
+#       "/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
+#       "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
+#     ]
+# }
+
+# static_library("chip-lighting-app_sl") {
+#   sources = [
+#     # "include/CHIPProjectAppConfig.h",
+#     "main.cpp",
+#   ]
+
+# }
+
+# executable("chip-lighting-app") {
+static_library("chip-lighting-app_sl") {
+  sources = [
+    # "include/CHIPProjectAppConfig.h",
+    "main.cpp",
+  ]
+
+  deps = [
+    # "${chip_root}/examples/lighting-app/lighting-common",
+    # "${chip_root}/examples/lighting-app/lighting-common:lighting-manager",
+    # "${chip_root}/examples/platform/linux:app-main",
+    # "${chip_root}/src/lib",
+  ]
+
+  if (chip_examples_enable_imgui_ui) {
+    deps += [
+      "${chip_root}/examples/common/imgui_ui",
+      "${chip_root}/examples/common/imgui_ui/windows:light",
+      "${chip_root}/examples/common/imgui_ui/windows:occupancy_sensing",
+      "${chip_root}/examples/common/imgui_ui/windows:qrcode",
+    ]
+  }
+
+  include_dirs = [ 
+    "include",
+    "/home/unni/work/git/freertos_sdk_test/include/libc/include",
+    "/home/unni/work/git/freertos_sdk_test/include",
+    "/home/unni/work/git/freertos_sdk_test/include/arm",
+    "/home/unni/work/git/freertos_sdk_test/FreeRTOS-Kernel/include",
+    "/home/unni/work/git/freertos_sdk_test/FreeRTOS-Kernel/portable/GCC/ARM_CM3",
+    "/home/unni/work/git/freertos_sdk_test/include/innos_osal/inc",
+    "/home/unni/work/git/freertos_sdk_test/include/lwip2/include",
+    "/home/unni/work/git/freertos_sdk_test/core/innos_osal/inc",
+  ]
+
+  if (chip_enable_pw_rpc) {
+    defines = [
+      "PW_RPC_ENABLED",
+      "PW_RPC_ATTRIBUTE_SERVICE=1",
+      "PW_RPC_BUTTON_SERVICE=1",
+      "PW_RPC_DESCRIPTOR_SERVICE=1",
+      "PW_RPC_DEVICE_SERVICE=1",
+      "PW_RPC_LIGHTING_SERVICE=1",
+      "PW_RPC_TRACING_SERVICE=1",
+    ]
+
+    sources += [
+      "${chip_root}/examples/platform/linux/Rpc.cpp",
+      "${chip_root}/examples/platform/linux/system_rpc_server.cc",
+    ]
+
+    deps += [
+      "$dir_pw_hdlc:pw_rpc",
+      "$dir_pw_hdlc:rpc_channel_output",
+      "$dir_pw_log",
+      "$dir_pw_rpc:server",
+      "$dir_pw_rpc/system_server:facade",
+      "$dir_pw_stream:socket_stream",
+      "$dir_pw_stream:sys_io_stream",
+      "$dir_pw_sync:mutex",
+      "$dir_pw_trace",
+      "$dir_pw_trace_tokenized",
+      "$dir_pw_trace_tokenized:trace_rpc_service",
+      "${chip_root}/config/linux/lib/pw_rpc:pw_rpc",
+      "${chip_root}/examples/common/pigweed:attributes_service.nanopb_rpc",
+      "${chip_root}/examples/common/pigweed:button_service.nanopb_rpc",
+      "${chip_root}/examples/common/pigweed:descriptor_service.nanopb_rpc",
+      "${chip_root}/examples/common/pigweed:device_service.nanopb_rpc",
+      "${chip_root}/examples/common/pigweed:lighting_service.nanopb_rpc",
+      "${chip_root}/examples/common/pigweed:rpc_services",
+    ]
+
+    deps += pw_build_LINK_DEPS
+
+    include_dirs += [ "${chip_root}/examples/common" ]
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx")
+  } else {
+    # The system_rpc_server.cc file is in pigweed and doesn't compile with
+    # -Wconversion, remove check for RPC build only.
+    print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
+    # cflags = [ "-Wconversion" ]
+    cflags = [ "-mcpu=cortex-m3" ]
+    cflags += [ "-MD" ]
+    cflags += [ "-MMD" ]
+    cflags += [ "-g" ]
+    cflags += [ "-nostdinc" ] 
+    cflags += [ "-Wno-address-of-packed-member" ] 
+    cflags += [ "-ffunction-sections" ]
+    cflags += [ "-fdata-sections" ]
+    cflags += [ "-fno-common" ]
+    cflags += [ "-Wshadow" ]
+    cflags += [ "-Wnull-dereference" ] 
+    cflags += [ "-Warray-bounds=2" ]
+    cflags += [ "-Os" ]
+    cflags += [ "-Wall" ]
+    cflags += [ "-Werror" ]
+    cflags += [ "-Wno-unused-variable" ]
+    cflags += [ "-Wno-unused-function" ]
+    cflags += [ "-fno-exceptions" ]
+
+    # ldflags = [ 
+    #   # "-Map",
+      # "-L/home/unni/work/git/freertos_sdk_test/libs",
+      # "-L/home/unni/work/git/freertos_sdk_test/libs/arm",
+      # "-L/home/unni/work/git/freertos_sdk_test/build",
+    #   "-T/home/unni/work/git/freertos_sdk_test/build/standalone.lds",
+      # "--entry _start",
+    #   "-zmax-page-size=256 main.o",
+    #   "--start-group",
+      # "-lwifi1",
+      # "1111111111",
+    #   "-lwifi", 
+    #   "-lrfdrv",
+    #   "-llwip2",
+    #   "-lsupplicant",
+    #   "-lfreertos",
+    #   "-lc",
+    #   "-linnos",
+    #   "-lfs",
+    #   "-losal",
+      # "--end-group",
+      # "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
+    # ]
+
+    lib_dirs = [ 
+      "/home/unni/work/git/freertos_sdk_test/libs",
+      # "222222222",
+      "/home/unni/work/git/freertos_sdk_test/libs/arm",
+      "/home/unni/work/git/freertos_sdk_test/build",
+    ]
+    
+    libs = [ 
+      # -/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a
+      # "/usr/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
+      # "/usr/gcc-arm-none-eabi-10.3-2021.10/bin/../lib/gcc/arm-none-eabi/10.3.1/thumb/v7-m/nofp/libgcc.a",
+    ]
+  }
+
+  output_dir = root_out_dir
+}
+
+group("talaria") {
+  deps = [ ":chip-lighting-app_sl" ]
+}
+
+group("default") {
+  deps = [ ":talaria" ]
+}
