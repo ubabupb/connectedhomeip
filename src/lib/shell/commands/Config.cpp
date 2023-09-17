@@ -127,7 +127,7 @@ static CHIP_ERROR ConfigGetSetupDiscriminator(bool printHeader)
     {
         streamer_printf(sout, "Discriminator:   ");
     }
-    streamer_printf(sout, "%03x\r\n", setupDiscriminator & chip::kMaxDiscriminatorValue);
+    streamer_printf(sout, "%d (0x%03x)\r\n", setupDiscriminator & chip::kMaxDiscriminatorValue, setupDiscriminator & chip::kMaxDiscriminatorValue);
     return CHIP_NO_ERROR;
 }
 

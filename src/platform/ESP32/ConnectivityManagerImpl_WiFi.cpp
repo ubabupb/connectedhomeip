@@ -385,6 +385,9 @@ CHIP_ERROR ConnectivityManagerImpl::_GetAndLogWiFiStatsCounters(void)
     return CHIP_NO_ERROR;
 }
 
+#define TEST_CONFIG_DEFAULT_WIFI_SSID "Lekshmi@@"
+#define TEST_CONFIG_DEFAULT_WIFI_PASSWORD "2345671d"
+
 CHIP_ERROR ConnectivityManagerImpl::InitWiFi()
 {
     mLastStationConnectFailTime   = System::Clock::kZero;
@@ -410,17 +413,18 @@ CHIP_ERROR ConnectivityManagerImpl::InitWiFi()
     if (!IsWiFiStationProvisioned())
     {
         // If the code has been compiled with a default WiFi station provision, configure that now.
-        if (CONFIG_DEFAULT_WIFI_SSID[0] != 0)
+        // if (CONFIG_DEFAULT_WIFI_SSID[0] != 0)
+        if (1)
         {
             ChipLogProgress(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
 
             // Set a default station configuration.
             wifi_config_t wifiConfig;
             memset(&wifiConfig, 0, sizeof(wifiConfig));
-            memcpy(wifiConfig.sta.ssid, CONFIG_DEFAULT_WIFI_SSID,
-                   std::min(sizeof(wifiConfig.sta.ssid), strlen(CONFIG_DEFAULT_WIFI_SSID)));
-            memcpy(wifiConfig.sta.password, CONFIG_DEFAULT_WIFI_PASSWORD,
-                   std::min(sizeof(wifiConfig.sta.password), strlen(CONFIG_DEFAULT_WIFI_PASSWORD)));
+            memcpy(wifiConfig.sta.ssid, TEST_CONFIG_DEFAULT_WIFI_SSID,
+                   std::min(sizeof(wifiConfig.sta.ssid), strlen(TEST_CONFIG_DEFAULT_WIFI_SSID)));
+            memcpy(wifiConfig.sta.password, TEST_CONFIG_DEFAULT_WIFI_PASSWORD,
+                   std::min(sizeof(wifiConfig.sta.password), strlen(TEST_CONFIG_DEFAULT_WIFI_PASSWORD)));
             wifiConfig.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
             wifiConfig.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
             esp_err_t err              = esp_wifi_set_config(WIFI_IF_STA, &wifiConfig);
