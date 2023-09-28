@@ -172,12 +172,20 @@ CHIP_ERROR LegacyTemporaryCommissionableDataProvider<ConfigClass>::GetSpake2pSal
 
     err = mGenericConfigManager.ReadConfigValueStr(ConfigClass::kConfigKey_Spake2pSalt, saltB64, sizeof(saltB64), saltB64Len);
 
+    char str[100];
+    sprintf(str, "\n__________________________ getsalt err?: %d, %s\n", err.AsInteger(), err.AsString());
+    ChipLogError(SecureChannel, str);
 #if defined(CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_SALT)
     if (err == CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
+        ChipLogError(SecureChannel, "\n__________________________ get default salt");
         saltB64Len = strlen(CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_SALT);
         ReturnErrorCodeIf(saltB64Len > sizeof(saltB64), CHIP_ERROR_BUFFER_TOO_SMALL);
         memcpy(saltB64, CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_SALT, saltB64Len);
+
+        sprintf(str, "\n__________________________ salt data: %d, %s\n", saltB64Len, saltB64);
+        ChipLogError(SecureChannel, str);
+
         err = CHIP_NO_ERROR;
     }
 #endif // defined(CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_SALT)
@@ -191,6 +199,10 @@ CHIP_ERROR LegacyTemporaryCommissionableDataProvider<ConfigClass>::GetSpake2pSal
     ReturnErrorCodeIf(saltLen > saltBuf.size(), CHIP_ERROR_BUFFER_TOO_SMALL);
     memcpy(saltBuf.data(), saltB64, saltLen);
     saltBuf.reduce_size(saltLen);
+
+    // char str[100];
+    sprintf(str, "\n__________________________ getsalt: %d, %s\n", saltBuf.size(), saltBuf.data());
+    ChipLogError(SecureChannel, str);    
 
     return CHIP_NO_ERROR;
 }

@@ -385,7 +385,10 @@ CHIP_ERROR ConnectivityManagerImpl::_GetAndLogWiFiStatsCounters(void)
     return CHIP_NO_ERROR;
 }
 
-#define TEST_CONFIG_DEFAULT_WIFI_SSID "Lekshmi@@"
+// #define TEST_CONFIG_DEFAULT_WIFI_SSID "Lekshmi@@"
+// #define TEST_CONFIG_DEFAULT_WIFI_PASSWORD "2345671d"
+
+#define TEST_CONFIG_DEFAULT_WIFI_SSID "myphone"
 #define TEST_CONFIG_DEFAULT_WIFI_PASSWORD "2345671d"
 
 CHIP_ERROR ConnectivityManagerImpl::InitWiFi()

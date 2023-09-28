@@ -113,6 +113,7 @@ CHIP_ERROR LinuxCommissionableDataProvider::Init(chip::Optional<std::vector<uint
     chip::MutableByteSpan saltSpan{ spake2pSalt.Value().data(), spake2pSalt.Value().size() };
     if (havePasscode)
     {
+        ChipLogError(SecureChannel, "\n___________________ Xv1\n");
         err = passcodeVerifier.Generate(spake2pIterationCount, saltSpan, setupPasscode.Value());
         if (err != CHIP_NO_ERROR)
         {

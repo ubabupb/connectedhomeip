@@ -136,6 +136,7 @@ CHIP_ERROR PASESession::GeneratePASEVerifier(Spake2pVerifier & verifier, uint32_
 {
     MATTER_TRACE_EVENT_SCOPE("GeneratePASEVerifier", "PASESession");
 
+    ChipLogError(SecureChannel, "\n___________________ Xv2\n");
     if (useRandomPIN)
     {
         ReturnErrorOnFailure(DRBG_get_bytes(reinterpret_cast<uint8_t *>(&setupPINCode), sizeof(setupPINCode)));
@@ -153,6 +154,7 @@ CHIP_ERROR PASESession::SetupSpake2p()
     uint8_t context[kSHA256_Hash_Length] = { 0 };
     MutableByteSpan contextSpan{ context };
 
+    ChipLogError(SecureChannel, "\n__________________________ SetupSpake2p\n");
     ReturnErrorOnFailure(mCommissioningHash.Finish(contextSpan));
     ReturnErrorOnFailure(mSpake2p.Init(contextSpan.data(), contextSpan.size()));
 
@@ -262,21 +264,61 @@ CHIP_ERROR PASESession::DeriveSecureSession(CryptoContext & session) const
                                   CryptoContext::SessionInfoType::kSessionEstablishment, mRole);
 }
 
+// void print_hex(const char * txt, uint8_t * data, int len);
+
+#define HEX_BUF_SIZE 300
+// #define ESP32
+
+#ifdef ESP32
+#include "esp_log.h"
+#endif
+
+void print_hex(const char * txt, uint8_t * data, int len)
+{
+    char hex_buf[HEX_BUF_SIZE];
+    memset(hex_buf, 0, HEX_BUF_SIZE);
+    int i = 0, j = 0;
+
+    for (i = j = 0; (j < len) && (i < HEX_BUF_SIZE); j++)
+    {
+        i += sprintf(hex_buf + i, "0x%x ", (int) (*(data + j)));
+    }
+
+#ifdef ESP32
+    ESP_LOGE("...:", "_______________________");
+    ESP_LOGE("...:", "%s", txt);
+    ESP_LOGE("...:", "%s", hex_buf);
+    ESP_LOGE("...:", "_______________________");
+#else
+    printf("\n_______________________\n");
+    printf("\n%s\n", txt);
+    printf("%s\n", hex_buf);
+    printf("\n_______________________\n");
+#endif
+}
+
 CHIP_ERROR PASESession::SendPBKDFParamRequest()
 {
     MATTER_TRACE_EVENT_SCOPE("SendPBKDFParamRequest", "PASESession");
 
     VerifyOrReturnError(GetLocalSessionId().HasValue(), CHIP_ERROR_INCORRECT_STATE);
 
-    ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
+    // ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
+
+    char temp[] = { (char) 0xe4, (char) 0x8d, (char) 0x8a, (char) 0xb9, (char) 0x2e, (char) 0xb0, (char) 0x14, (char) 0x6b,
+                    (char) 0x2,  (char) 0x32, (char) 0xcd, (char) 0xf7, (char) 0xb9, (char) 0xfe, (char) 0x45, (char) 0x24,
+                    (char) 0x4a, (char) 0x6b, (char) 0x8d, (char) 0x41, (char) 0x96, (char) 0xb2, (char) 0xc8, (char) 0x74,
+                    (char) 0x99, (char) 0xdc, (char) 0x1d, (char) 0xd6, (char) 0x16, (char) 0x87, (char) 0xd2, (char) 0x4e };
+    memcpy(mPBKDFLocalRandomData, temp, sizeof(mPBKDFLocalRandomData));
+    print_hex("\nDRBG-req", mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData));
 
     const size_t mrpParamsSize = mLocalMRPConfig.HasValue() ? TLV::EstimateStructOverhead(sizeof(uint16_t), sizeof(uint16_t)) : 0;
     const size_t max_msg_len   = TLV::EstimateStructOverhead(kPBKDFParamRandomNumberSize, // initiatorRandom,
-                                                           sizeof(uint16_t),            // initiatorSessionId
-                                                           sizeof(PasscodeId),          // passcodeId,
-                                                           sizeof(uint8_t),             // hasPBKDFParameters
-                                                           mrpParamsSize                // MRP Parameters
-    );
+                                                             sizeof(uint16_t),            // initiatorSessionId
+                                                             sizeof(PasscodeId),          // passcodeId,
+                                                             sizeof(uint8_t),             // hasPBKDFParameters
+                                                             mrpParamsSize                // MRP Parameters
+      );
 
     System::PacketBufferHandle req = System::PacketBufferHandle::New(max_msg_len);
     VerifyOrReturnError(!req.IsNull(), CHIP_ERROR_NO_MEMORY);
@@ -380,7 +422,15 @@ CHIP_ERROR PASESession::SendPBKDFParamResponse(ByteSpan initiatorRandom, bool in
 
     VerifyOrReturnError(GetLocalSessionId().HasValue(), CHIP_ERROR_INCORRECT_STATE);
 
-    ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
+    // ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
+    // print_hex_1("\nDRBG", mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData));
+
+    char temp[] = { (char) 0x8,  (char) 0x63, (char) 0x4e, (char) 0x33, (char) 0xe9, (char) 0xea, (char) 0x49, (char) 0x5a,
+                    (char) 0xfc, (char) 0x5a, (char) 0x98, (char) 0x3e, (char) 0x3b, (char) 0x10, (char) 0x35, (char) 0x35,
+                    (char) 0x92, (char) 0xdd, (char) 0x62, (char) 0xe3, (char) 0x1c, (char) 0xc0, (char) 0x27, (char) 0x10,
+                    (char) 0x0,  (char) 0xdd, (char) 0x4e, (char) 0x11, (char) 0x58, (char) 0x5a, (char) 0x92, (char) 0x9d };
+    memcpy(mPBKDFLocalRandomData, temp, sizeof(mPBKDFLocalRandomData));
+    print_hex("\nDRBG-resp", mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData));
 
     const size_t mrpParamsSize = mLocalMRPConfig.HasValue() ? TLV::EstimateStructOverhead(sizeof(uint16_t), sizeof(uint16_t)) : 0;
     const size_t max_msg_len =
@@ -478,6 +528,7 @@ CHIP_ERROR PASESession::HandlePBKDFParamResponse(System::PacketBufferHandle && m
 
     if (mHavePBKDFParameters)
     {
+        printf("\n__________________________ HandlePBKDFParamResponse 1 ");
         if (tlvReader.Next() != CHIP_END_OF_TLV)
         {
             SuccessOrExit(err = DecodeMRPParametersIfPresent(TLV::ContextTag(5), tlvReader));
@@ -489,6 +540,7 @@ CHIP_ERROR PASESession::HandlePBKDFParamResponse(System::PacketBufferHandle && m
     }
     else
     {
+        printf("\n__________________________ HandlePBKDFParamResponse 2 ");
         SuccessOrExit(err = tlvReader.Next());
         SuccessOrExit(err = tlvReader.EnterContainer(containerType));
         decodeTagIdSeq = 0;
@@ -513,11 +565,13 @@ CHIP_ERROR PASESession::HandlePBKDFParamResponse(System::PacketBufferHandle && m
     err = SetupSpake2p();
     SuccessOrExit(err);
 
+    // printf("\n__________________________ compute %d, %d, %ld, %s\n", mIterationCount, mSetupPINCode, salt.size(), salt.data());
     err = Spake2pVerifier::ComputeWS(mIterationCount, salt, mSetupPINCode, serializedWS, sizeof(serializedWS));
     SuccessOrExit(err);
-
+    ChipLogError(SecureChannel, "\n__________________________ BeginProver 1\n");
     err = mSpake2p.BeginProver(nullptr, 0, nullptr, 0, &serializedWS[0], kSpake2p_WS_Length, &serializedWS[kSpake2p_WS_Length],
                                kSpake2p_WS_Length);
+    ChipLogError(SecureChannel, "\n__________________________ BeginProver 2\n");
     SuccessOrExit(err);
 
     err = SendMsg1();
@@ -591,10 +645,14 @@ CHIP_ERROR PASESession::HandleMsg1_and_SendMsg2(System::PacketBufferHandle && ms
     VerifyOrExit(TLV::TagNumFromTag(tlvReader.GetTag()) == 1, err = CHIP_ERROR_INVALID_TLV_TAG);
     X_len = tlvReader.GetLength();
     SuccessOrExit(err = tlvReader.GetDataPtr(X));
+    print_hex("\nX", (uint8_t *) X, (int) X_len);
     SuccessOrExit(err = mSpake2p.BeginVerifier(nullptr, 0, nullptr, 0, mPASEVerifier.mW0, kP256_FE_Length, mPASEVerifier.mL,
                                                kP256_Point_Length));
+    print_hex("\nmPASEVerifier.mW0", mPASEVerifier.mW0, kP256_FE_Length);
+    print_hex("\nmPASEVerifier.mL", mPASEVerifier.mL, kP256_Point_Length);
 
     SuccessOrExit(err = mSpake2p.ComputeRoundOne(X, X_len, Y, &Y_len));
+    print_hex("\nY", Y, (int) Y_len);
     VerifyOrReturnError(Y_len == sizeof(Y), CHIP_ERROR_INTERNAL);
     SuccessOrExit(err = mSpake2p.ComputeRoundTwo(X, X_len, verifier, &verifier_len));
     msg1 = nullptr;
@@ -673,7 +731,9 @@ CHIP_ERROR PASESession::HandleMsg2_and_SendMsg3(System::PacketBufferHandle && ms
 
     SuccessOrExit(err = mSpake2p.ComputeRoundTwo(Y, Y_len, verifier, &verifier_len));
 
+    printf("\n_________________________ X1\n");
     SuccessOrExit(err = mSpake2p.KeyConfirm(peer_verifier, peer_verifier_len));
+    printf("\n_________________________ X2\n");
     SuccessOrExit(err = mSpake2p.GetKeys(mKe, &mKeLen));
     msg2 = nullptr;
 
@@ -736,7 +796,9 @@ CHIP_ERROR PASESession::HandleMsg3(System::PacketBufferHandle && msg)
 
     VerifyOrExit(peer_verifier_len == kMAX_Hash_Length, err = CHIP_ERROR_INVALID_MESSAGE_LENGTH);
 
+    printf("\n_________________________ X3\n");
     SuccessOrExit(err = mSpake2p.KeyConfirm(peer_verifier, peer_verifier_len));
+    printf("\n_________________________ X4\n");
     SuccessOrExit(err = mSpake2p.GetKeys(mKe, &mKeLen));
 
     // Send confirmation to peer that we succeeded so they can start using the session.
@@ -835,33 +897,40 @@ CHIP_ERROR PASESession::OnMessageReceived(ExchangeContext * exchange, const Payl
 
     switch (msgType)
     {
-    case MsgType::PBKDFParamRequest:
+    case MsgType::PBKDFParamRequest: // @device, Request received from PC
         err = HandlePBKDFParamRequest(std::move(msg));
+        ChipLogError(SecureChannel, "MsgType::PBKDFParamRequest ____ 1 ");
         break;
 
-    case MsgType::PBKDFParamResponse:
+    case MsgType::PBKDFParamResponse: // @PC, Response received from device
         err = HandlePBKDFParamResponse(std::move(msg));
+        ChipLogError(SecureChannel, "MsgType::PBKDFParamResponse ____ 2 ");
         break;
 
-    case MsgType::PASE_Pake1:
+    case MsgType::PASE_Pake1: // @device,
         err = HandleMsg1_and_SendMsg2(std::move(msg));
+        ChipLogError(SecureChannel, "MsgType::PASE_Pake1 ____ 3 ");
         break;
 
-    case MsgType::PASE_Pake2:
+    case MsgType::PASE_Pake2: // @PC,
         err = HandleMsg2_and_SendMsg3(std::move(msg));
+        ChipLogError(SecureChannel, "MsgType::PASE_Pake2 ____ 4 ");
         break;
 
-    case MsgType::PASE_Pake3:
+    case MsgType::PASE_Pake3: // @device,
         err = HandleMsg3(std::move(msg));
+        ChipLogError(SecureChannel, "MsgType::PASE_Pake3 ____ 5 ");
         break;
 
     case MsgType::StatusReport:
         err =
             HandleStatusReport(std::move(msg), mNextExpectedMsg.HasValue() && (mNextExpectedMsg.Value() == MsgType::StatusReport));
+        ChipLogError(SecureChannel, "MsgType::StatusReport ____ 6 ");
         break;
 
     default:
         err = CHIP_ERROR_INVALID_MESSAGE_TYPE;
+        ChipLogError(SecureChannel, " ____ 7 ");
         break;
     };
 

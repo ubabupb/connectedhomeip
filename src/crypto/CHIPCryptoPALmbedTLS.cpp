@@ -467,6 +467,20 @@ CHIP_ERROR DRBG_get_bytes(uint8_t * out_buffer, const size_t out_length)
     return CHIP_NO_ERROR;
 }
 
+void print_hex(const char * txt, uint8_t * data, int len);
+
+static int CryptoRNG_fe(void * ctxt, uint8_t * out_buffer, size_t out_length)
+{
+    char rng[] = { (char) 0x37, (char) 0x80, (char) 0xe9, (char) 0x9f, (char) 0xbc, (char) 0xa2, (char) 0xe6, (char) 0x2b,
+                   (char) 0x35, (char) 0x6c, (char) 0x49, (char) 0x7d, (char) 0xfc, (char) 0x9c, (char) 0x50, (char) 0xd6,
+                   (char) 0xff, (char) 0x34, (char) 0x80, (char) 0xa2, (char) 0xb1, (char) 0x1b, (char) 0xec, (char) 0x74,
+                   (char) 0x8d, (char) 0xe4, (char) 0x99, (char) 0x55, (char) 0xa7, (char) 0xec, (char) 0x80, (char) 0x6b };
+    // int err = (int) ((chip::Crypto::DRBG_get_bytes(out_buffer, out_length) == CHIP_NO_ERROR) ? 0 : 1);
+    memcpy(out_buffer, rng, out_length);
+    print_hex("CryptoRNG_fe", out_buffer, out_length);
+    return 0;
+}
+
 static int CryptoRNG(void * ctxt, uint8_t * out_buffer, size_t out_length)
 {
     return (chip::Crypto::DRBG_get_bytes(out_buffer, out_length) == CHIP_NO_ERROR) ? 0 : 1;
@@ -1090,7 +1104,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::FEGenerate(void * fe)
 
     Spake2p_Context * context = to_inner_spake2p_context(&mSpake2pContext);
 
-    result = mbedtls_ecp_gen_privkey(&context->curve, (mbedtls_mpi *) fe, CryptoRNG, nullptr);
+    result = mbedtls_ecp_gen_privkey(&context->curve, (mbedtls_mpi *) fe, CryptoRNG_fe, nullptr);
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
 exit:

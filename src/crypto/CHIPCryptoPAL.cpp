@@ -345,6 +345,8 @@ exit:
     return error;
 }
 
+void print_hex(const char * txt, uint8_t * data, int len);
+
 CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t * out, size_t * out_len)
 {
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
@@ -410,6 +412,8 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
 
     SuccessOrExit(error = GenerateKeys());
 
+    print_hex("KCAB", Kcab, (int) hash_size);
+
     SuccessOrExit(error = Mac(Kcaorb, hash_size / 2, in, in_len, out_span));
     VerifyOrExit(out_span.size() == hash_size, error = CHIP_ERROR_INTERNAL);
 
@@ -432,6 +436,37 @@ CHIP_ERROR Spake2p::GenerateKeys()
     return CHIP_NO_ERROR;
 }
 
+#define HEX_BUF_SIZE 300
+// #define ESP32
+
+#ifdef ESP32
+#include "esp_log.h"
+#endif
+
+void print_hex(const char * txt, uint8_t * data, int len)
+{
+    char hex_buf[HEX_BUF_SIZE];
+    memset(hex_buf, 0, HEX_BUF_SIZE);
+    int i = 0, j = 0;
+
+    for (i = j = 0; (j < len) && (i < HEX_BUF_SIZE); j++)
+    {
+        i += sprintf(hex_buf + i, "0x%x ", (int) (*(data + j)));
+    }
+
+#ifdef ESP32
+    ESP_LOGE("...:", "_______________________");
+    ESP_LOGE("...:", "%s", txt);
+    ESP_LOGE("...:", "%s", hex_buf);
+    ESP_LOGE("...:", "_______________________");
+#else
+    printf("\n_______________________\n");
+    printf("\n%s\n", txt);
+    printf("%s\n", hex_buf);
+    printf("\n_______________________\n");
+#endif
+}
+
 CHIP_ERROR Spake2p::KeyConfirm(const uint8_t * in, size_t in_len)
 {
     uint8_t point_buffer[kP256_Point_Length];
@@ -440,22 +475,40 @@ CHIP_ERROR Spake2p::KeyConfirm(const uint8_t * in, size_t in_len)
 
     VerifyOrReturnError(state == CHIP_SPAKE2P_STATE::R2, CHIP_ERROR_INTERNAL);
 
+    // size_t fe_size;
+    // size_t hash_size;
+    // size_t point_size;
+    // uint8_t Kcab[kMAX_Hash_Length];
+    // uint8_t Kae[kMAX_Hash_Length];
+    // uint8_t * Kca;
+    // uint8_t * Kcb;
+    // uint8_t * Ka;
+    // uint8_t * Ke;
+
     if (role == CHIP_SPAKE2P_ROLE::PROVER)
     {
+        ChipLogError(SecureChannel, "\n*** CHIP_SPAKE2P_ROLE::PROVER");
         XY     = X;
         Kcaorb = Kcb;
+        print_hex("Kcb", Kcb, (int) (hash_size / 2));
+        // print_hex("Kb", Kb, 100);
     }
     else if (role == CHIP_SPAKE2P_ROLE::VERIFIER)
     {
+        ChipLogError(SecureChannel, "\n*** CHIP_SPAKE2P_ROLE::VERIFIER");
         XY     = Y;
         Kcaorb = Kca;
+        print_hex("Kca", Kca, (int) (hash_size / 2));
+        // print_hex("ka", Ka, 100);
     }
+
     VerifyOrReturnError(XY != nullptr, CHIP_ERROR_INTERNAL);
     VerifyOrReturnError(Kcaorb != nullptr, CHIP_ERROR_INTERNAL);
 
     ReturnErrorOnFailure(PointWrite(XY, point_buffer, point_size));
 
     CHIP_ERROR err = MacVerify(Kcaorb, hash_size / 2, in, in_len, point_buffer, point_size);
+    // printf("\n*** %d %ld %d %ld %d %ld ***\n", *Kcaorb, hash_size, *in, in_len, *point_buffer, point_size);
     if (err == CHIP_ERROR_INTERNAL)
     {
         ChipLogError(SecureChannel, "Failed to verify peer's MAC. This can happen when setup code is incorrect.");
@@ -542,6 +595,7 @@ CHIP_ERROR Spake2pVerifier::Deserialize(const ByteSpan & inSerialized)
 
 CHIP_ERROR Spake2pVerifier::Generate(uint32_t pbkdf2IterCount, const ByteSpan & salt, uint32_t setupPin)
 {
+    ChipLogError(SecureChannel, "\n___________________ Xv3\n");
     uint8_t serializedWS[kSpake2p_WS_Length * 2] = { 0 };
     ReturnErrorOnFailure(ComputeWS(pbkdf2IterCount, salt, setupPin, serializedWS, sizeof(serializedWS)));
 
@@ -588,8 +642,16 @@ CHIP_ERROR Spake2pVerifier::ComputeWS(uint32_t pbkdf2IterCount, const ByteSpan &
     ReturnErrorCodeIf(pbkdf2IterCount < kSpake2p_Min_PBKDF_Iterations || pbkdf2IterCount > kSpake2p_Max_PBKDF_Iterations,
                       CHIP_ERROR_INVALID_ARGUMENT);
 
-    return pbkdf2.pbkdf2_sha256(littleEndianSetupPINCode, sizeof(littleEndianSetupPINCode), salt.data(), salt.size(),
-                                pbkdf2IterCount, ws_len, ws);
+    CHIP_ERROR err = pbkdf2.pbkdf2_sha256(littleEndianSetupPINCode, sizeof(littleEndianSetupPINCode), salt.data(), salt.size(),
+                                          pbkdf2IterCount, ws_len, ws);
+
+    // char str[50];
+    // sprintf(str, "\n%d:%s: %d %d\n", __LINE__, __func__, ws_len, ws);
+    // ChipLogError(SecureChannel, "\n___________________ Xv3\n");
+    print_hex("computeWS", ws, ws_len);
+    // return pbkdf2.pbkdf2_sha256(littleEndianSetupPINCode, sizeof(littleEndianSetupPINCode), salt.data(), salt.size(),
+    //                             pbkdf2IterCount, ws_len, ws);
+    return err;
 }
 
 CHIP_ERROR ConvertIntegerRawToDerWithoutTag(const ByteSpan & raw_integer, MutableByteSpan & out_der_integer)
