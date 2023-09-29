@@ -55,6 +55,8 @@
 
 #include <string.h>
 
+void print_hex(const char * txt, uint8_t * data, int len);
+
 namespace chip {
 namespace Crypto {
 
@@ -466,8 +468,6 @@ CHIP_ERROR DRBG_get_bytes(uint8_t * out_buffer, const size_t out_length)
 
     return CHIP_NO_ERROR;
 }
-
-void print_hex(const char * txt, uint8_t * data, int len);
 
 static int CryptoRNG_fe(void * ctxt, uint8_t * out_buffer, size_t out_length)
 {

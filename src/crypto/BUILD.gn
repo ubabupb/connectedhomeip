@@ -145,6 +145,12 @@ static_library("crypto") {
     "RandUtils.h",
   ]
 
+  if(target_os == "linux") {
+    defines = [
+      "CHIP_LINUX_DEBUG_MSG_ENABLE",
+    ]
+  }
+
   if (chip_crypto == "psa") {
     sources += [
       "PSASessionKeystore.cpp",

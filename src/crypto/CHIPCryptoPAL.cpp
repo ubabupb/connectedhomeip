@@ -38,6 +38,40 @@ using chip::Encoding::LittleEndian::Reader;
 
 using namespace chip::ASN1;
 
+#define HEX_BUF_SIZE 300
+#ifdef CHIP_LINUX_DEBUG_MSG_ENABLE
+#else
+#define ESP32
+#endif
+
+#ifdef ESP32
+#include "esp_log.h"
+#endif
+
+void print_hex(const char * txt, uint8_t * data, int len)
+{
+    char hex_buf[HEX_BUF_SIZE];
+    memset(hex_buf, 0, HEX_BUF_SIZE);
+    int i = 0, j = 0;
+
+    for (i = j = 0; (j < len) && (i < HEX_BUF_SIZE); j++)
+    {
+        i += sprintf(hex_buf + i, "0x%x ", (int) (*(data + j)));
+    }
+
+#ifdef ESP32
+    ESP_LOGE("...:", "_______________________");
+    ESP_LOGE("...:", "%s", txt);
+    ESP_LOGE("...:", "%s", hex_buf);
+    ESP_LOGE("...:", "_______________________");
+#else
+    printf("\n_______________________\n");
+    printf("\n%s\n", txt);
+    printf("%s\n", hex_buf);
+    printf("\n_______________________\n");
+#endif
+}
+
 namespace {
 
 constexpr uint8_t kIntegerTag         = 0x02u;
@@ -345,8 +379,6 @@ exit:
     return error;
 }
 
-void print_hex(const char * txt, uint8_t * data, int len);
-
 CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t * out, size_t * out_len)
 {
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
@@ -434,37 +466,6 @@ CHIP_ERROR Spake2p::GenerateKeys()
     ReturnErrorOnFailure(KDF(Ka, hash_size / 2, nullptr, 0, info_keyconfirm, sizeof(info_keyconfirm), Kcab, hash_size));
 
     return CHIP_NO_ERROR;
-}
-
-#define HEX_BUF_SIZE 300
-// #define ESP32
-
-#ifdef ESP32
-#include "esp_log.h"
-#endif
-
-void print_hex(const char * txt, uint8_t * data, int len)
-{
-    char hex_buf[HEX_BUF_SIZE];
-    memset(hex_buf, 0, HEX_BUF_SIZE);
-    int i = 0, j = 0;
-
-    for (i = j = 0; (j < len) && (i < HEX_BUF_SIZE); j++)
-    {
-        i += sprintf(hex_buf + i, "0x%x ", (int) (*(data + j)));
-    }
-
-#ifdef ESP32
-    ESP_LOGE("...:", "_______________________");
-    ESP_LOGE("...:", "%s", txt);
-    ESP_LOGE("...:", "%s", hex_buf);
-    ESP_LOGE("...:", "_______________________");
-#else
-    printf("\n_______________________\n");
-    printf("\n%s\n", txt);
-    printf("%s\n", hex_buf);
-    printf("\n_______________________\n");
-#endif
 }
 
 CHIP_ERROR Spake2p::KeyConfirm(const uint8_t * in, size_t in_len)

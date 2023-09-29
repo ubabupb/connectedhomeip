@@ -47,6 +47,7 @@
 #include <trace/trace.h>
 #include <transport/SessionManager.h>
 
+void print_hex(const char * txt, uint8_t * data, int len);
 namespace chip {
 
 using namespace Crypto;
@@ -262,39 +263,6 @@ CHIP_ERROR PASESession::DeriveSecureSession(CryptoContext & session) const
     VerifyOrReturnError(mPairingComplete, CHIP_ERROR_INCORRECT_STATE);
     return session.InitFromSecret(*mSessionManager->GetSessionKeystore(), ByteSpan(mKe, mKeLen), ByteSpan(nullptr, 0),
                                   CryptoContext::SessionInfoType::kSessionEstablishment, mRole);
-}
-
-// void print_hex(const char * txt, uint8_t * data, int len);
-
-#define HEX_BUF_SIZE 300
-// #define ESP32
-
-#ifdef ESP32
-#include "esp_log.h"
-#endif
-
-void print_hex(const char * txt, uint8_t * data, int len)
-{
-    char hex_buf[HEX_BUF_SIZE];
-    memset(hex_buf, 0, HEX_BUF_SIZE);
-    int i = 0, j = 0;
-
-    for (i = j = 0; (j < len) && (i < HEX_BUF_SIZE); j++)
-    {
-        i += sprintf(hex_buf + i, "0x%x ", (int) (*(data + j)));
-    }
-
-#ifdef ESP32
-    ESP_LOGE("...:", "_______________________");
-    ESP_LOGE("...:", "%s", txt);
-    ESP_LOGE("...:", "%s", hex_buf);
-    ESP_LOGE("...:", "_______________________");
-#else
-    printf("\n_______________________\n");
-    printf("\n%s\n", txt);
-    printf("%s\n", hex_buf);
-    printf("\n_______________________\n");
-#endif
 }
 
 CHIP_ERROR PASESession::SendPBKDFParamRequest()
