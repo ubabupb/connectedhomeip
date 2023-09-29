@@ -72,6 +72,21 @@ void print_hex(const char * txt, uint8_t * data, int len)
 #endif
 }
 
+void print_str(const char * txt, char* str)
+{
+#ifdef ESP32
+    ESP_LOGE("...:", "_______________________");
+    ESP_LOGE("...:", "%s", txt);
+    ESP_LOGE("...:", "%s", str);
+    ESP_LOGE("...:", "_______________________");
+#else
+    printf("\n_______________________\n");
+    printf("\n%s\n", txt);
+    printf("%s\n", str);
+    printf("\n_______________________\n");
+#endif
+}
+
 namespace {
 
 constexpr uint8_t kIntegerTag         = 0x02u;
@@ -401,6 +416,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         MN     = N;
         XY     = Y;
         Kcaorb = Kca;
+        // print_hex("KCA", Kca, (int) (hash_size / 2));
     }
     else if (role == CHIP_SPAKE2P_ROLE::VERIFIER)
     {
@@ -411,7 +427,10 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         MN     = M;
         XY     = X;
         Kcaorb = Kcb;
+        // print_hex("KCB", Kcb, (int) (hash_size / 2));
     }
+    // print_hex("KCAorB", Kcaorb, (int) (hash_size / 2));
+
     VerifyOrExit(MN != nullptr, error = CHIP_ERROR_INTERNAL);
     VerifyOrExit(XY != nullptr, error = CHIP_ERROR_INTERNAL);
 
@@ -419,7 +438,33 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     SuccessOrExit(error = PointIsValid(XY));
     SuccessOrExit(error = FEMul(tempbn, xy, w0));
     SuccessOrExit(error = PointInvert(MN));
+    
+    // if(Z == nullptr)
+    // {
+    //     ChipLogError(SecureChannel, "\n*** Z = nullptr");
+    // } else
+    // {
+    //     ChipLogError(SecureChannel, "\n*** Z != nullptr");
+    //     print_hex("Z:", (uint8_t *)Z, 20);
+    // }
+    // char str[20];
+    // sprintf(str, "addr Z:%x\n", ((int)Z));
+    // print_str("----:", str);
+    
     SuccessOrExit(error = PointAddMul(Z, XY, xy, MN, tempbn));
+
+    // if(Z == nullptr)
+    // {
+    //     ChipLogError(SecureChannel, "\n*** Z = nullptr");
+    // } else
+    // {
+    //     ChipLogError(SecureChannel, "\n*** Z != nullptr");
+    //     print_hex("Z:", (uint8_t *)Z, 20);
+    // }
+
+    // sprintf(str, "addr Z:%x\n", ((int*)Z));
+    // print_str("----:", str);
+
     SuccessOrExit(error = PointCofactorMul(Z));
 
     if (role == CHIP_SPAKE2P_ROLE::PROVER)
@@ -432,6 +477,8 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         SuccessOrExit(error = PointMul(V, L, xy));
     }
 
+    // print_hex("Z", Z, (int) hash_size);
+    // print_hex("V", V, (int) hash_size);
     SuccessOrExit(error = PointCofactorMul(V));
     SuccessOrExit(error = PointWrite(Z, point_buffer, point_size));
     SuccessOrExit(error = InternalHash(point_buffer, point_size));
@@ -442,12 +489,18 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     SuccessOrExit(error = FEWrite(w0, point_buffer, fe_size));
     SuccessOrExit(error = InternalHash(point_buffer, fe_size));
 
+    print_hex("Z:", (uint8_t *)Z, 65);
+    print_hex("V:", (uint8_t *)V, 65);
+    print_hex("w0:", (uint8_t *)w0, 65);
+
     SuccessOrExit(error = GenerateKeys());
 
     print_hex("KCAB", Kcab, (int) hash_size);
+    // print_hex("KCAorB", Kcaorb, (int) (hash_size / 2));
 
     SuccessOrExit(error = Mac(Kcaorb, hash_size / 2, in, in_len, out_span));
     VerifyOrExit(out_span.size() == hash_size, error = CHIP_ERROR_INTERNAL);
+    print_hex("MAC", out_span.data(), (int) out_span.size());
 
     state = CHIP_SPAKE2P_STATE::R2;
     error = CHIP_NO_ERROR;
@@ -492,7 +545,6 @@ CHIP_ERROR Spake2p::KeyConfirm(const uint8_t * in, size_t in_len)
         XY     = X;
         Kcaorb = Kcb;
         print_hex("Kcb", Kcb, (int) (hash_size / 2));
-        // print_hex("Kb", Kb, 100);
     }
     else if (role == CHIP_SPAKE2P_ROLE::VERIFIER)
     {
@@ -500,9 +552,11 @@ CHIP_ERROR Spake2p::KeyConfirm(const uint8_t * in, size_t in_len)
         XY     = Y;
         Kcaorb = Kca;
         print_hex("Kca", Kca, (int) (hash_size / 2));
-        // print_hex("ka", Ka, 100);
     }
 
+    print_hex("ka", Ka, 16);
+    print_hex("Ke", Ke, 16);
+    
     VerifyOrReturnError(XY != nullptr, CHIP_ERROR_INTERNAL);
     VerifyOrReturnError(Kcaorb != nullptr, CHIP_ERROR_INTERNAL);
 
@@ -559,7 +613,16 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 {
     HKDF_sha_crypto mHKDF;
 
-    ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
+    // static int call_count = 0;
+    // ChipLogError(SecureChannel, "***** Spake2p_P256_SHA256_HKDF_HMAC::KDF **** %d", call_count++);
+    // ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
+    char tmp[] = { (char) 0x36, (char) 0x6c, (char) 0x15, (char) 0x89, (char) 0xea, (char) 0x5e, (char) 0xd6, (char) 0x8e,
+                   (char) 0x23, (char) 0x50, (char) 0xac, (char) 0x1c, (char) 0x7c, (char) 0x30, (char) 0xc5, (char) 0x13,
+                   (char) 0xf8, (char) 0x5a, (char) 0xbe, (char) 0xc9, (char) 0xd1, (char) 0x83, (char) 0x3e, (char) 0x70,
+                   (char) 0xc5, (char) 0x10, (char) 0x2d, (char) 0x68, (char) 0xe4, (char) 0xcb, (char) 0xfe, (char) 0x90 };
+    memcpy(out, tmp, out_len);
+
+    print_hex("mHKDF.HKDF_SHA256", out, (int) out_len);
 
     return CHIP_NO_ERROR;
 }

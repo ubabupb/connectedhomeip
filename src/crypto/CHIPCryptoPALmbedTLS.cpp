@@ -331,6 +331,8 @@ CHIP_ERROR HKDF_sha::HKDF_SHA256(const uint8_t * secret, const size_t secret_len
 
     const int result = mbedtls_hkdf(md, Uint8::to_const_uchar(salt), salt_length, Uint8::to_const_uchar(secret), secret_length,
                                     Uint8::to_const_uchar(info), info_length, Uint8::to_uchar(out_buffer), out_length);
+
+    // print_hex("mbedtls_hkdf", out_buffer, out_length);
     _log_mbedTLS_error(result);
     VerifyOrReturnError(result == 0, CHIP_ERROR_INTERNAL);
 
@@ -1064,6 +1066,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::MacVerify(const uint8_t * key, size_t 
 
     SuccessOrExit(error = Mac(key, key_len, in, in_len, computed_mac_span));
     VerifyOrExit(computed_mac_span.size() == mac_len, error = CHIP_ERROR_INTERNAL);
+    print_hex("MacVerify", computed_mac_span.data(), (int)computed_mac_span.size());
 
     VerifyOrExit(IsBufferContentEqualConstantTime(mac, computed_mac, kSHA256_Hash_Length), error = CHIP_ERROR_INTERNAL);
 
