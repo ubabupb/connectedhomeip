@@ -540,6 +540,7 @@ CHIP_ERROR Spake2p::GenerateKeys()
     MutableByteSpan Kae_span{ &Kae[0], sizeof(Kae) };
 
     ReturnErrorOnFailure(HashFinalize(Kae_span));
+    print_hex("Kae - GenerateKeys", Kae, sizeof(Kae));
     ReturnErrorOnFailure(KDF(Ka, hash_size / 2, nullptr, 0, info_keyconfirm, sizeof(info_keyconfirm), Kcab, hash_size));
 
     return CHIP_NO_ERROR;
@@ -614,6 +615,7 @@ exit:
 
 CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::InitImpl()
 {
+    ChipLogError(SecureChannel, "\n___________________ InitImpl \n");
     ReturnErrorOnFailure(sha256_hash_ctx.Begin());
     ReturnErrorOnFailure(InitInternal());
     return CHIP_NO_ERROR;
@@ -621,12 +623,14 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::InitImpl()
 
 CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::Hash(const uint8_t * in, size_t in_len)
 {
+    ChipLogError(SecureChannel, "\n___________________ Hash \n");
     ReturnErrorOnFailure(sha256_hash_ctx.AddData(ByteSpan{ in, in_len }));
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::HashFinalize(MutableByteSpan & out_span)
 {
+    ChipLogError(SecureChannel, "\n___________________ HashFinalize \n");
     ReturnErrorOnFailure(sha256_hash_ctx.Finish(out_span));
     return CHIP_NO_ERROR;
 }
@@ -655,7 +659,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 
     // static int call_count = 0;
     // ChipLogError(SecureChannel, "***** Spake2p_P256_SHA256_HKDF_HMAC::KDF **** %d", call_count++);
-#if 1
+#if 0
     ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
 #else
     char tmp[] = { (char) 0x36, (char) 0x6c, (char) 0x15, (char) 0x89, (char) 0xea, (char) 0x5e, (char) 0xd6, (char) 0x8e,
