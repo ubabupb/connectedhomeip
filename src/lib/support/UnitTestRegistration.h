@@ -48,6 +48,10 @@
         VerifyOrDie(chip::RegisterUnitTests(&FUNCTION) == CHIP_NO_ERROR);                                                          \
     }
 
+
+#define CHIP_REGISTER_TEST_SUITE_1(FUNCTION)                                                                                         \
+    VerifyOrDie(chip::RegisterUnitTests(&FUNCTION) == CHIP_NO_ERROR);                                                          \
+
 namespace chip {
 
 typedef int (*UnitTestTriggerFunction)();

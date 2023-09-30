@@ -53,3 +53,19 @@ int main(int argc, char * argv[])
 
     return commands.Run(argc, argv);
 }
+
+
+
+void print_test_results(nlTestSuite *tSuite)
+{
+    ESP_LOGE("\n\n\
+            ******************************\n \
+            TEST RESULTS : %s\n\
+            \t total tests      : %d \n\
+            \t failed           : %d\n\
+            \t Assertions       : %d\n\
+            \t failed           : %d\n\
+            ****************************** %s \n\n",  tSuite->name, tSuite->runTests, tSuite->failedTests,
+                                                tSuite->performedAssertions, tSuite->failedAssertions,
+                                                tSuite->flagError ? "FAIL" : "PASS" );
+}

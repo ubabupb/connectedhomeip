@@ -105,8 +105,18 @@ static void InitServer(intptr_t context)
     Esp32AppServer::Init(); // Init ZCL Data Model and CHIP App Server AND Initialize device attestation config
 }
 
+void test_suit_proc();
 extern "C" void app_main()
 {
+
+    xTaskCreate( (TaskFunction_t)test_suit_proc, "unit_test_task", 40000, NULL, 5, NULL);
+
+    while(1)
+    {
+        vTaskDelay(1000);
+        ESP_LOGE("...", ":");
+    }
+
     // Initialize the ESP NVS layer.
     esp_err_t err = nvs_flash_init();
     if (err != ESP_OK)
@@ -177,4 +187,22 @@ extern "C" void app_main()
     {
         ESP_LOGE(TAG, "GetAppTask().StartAppTask() failed : %s", ErrorStr(error));
     }
+}
+
+#include <../third_party/nlunit-test/repo/src/nlunit-test.h>
+
+void print_test_results(nlTestSuite *tSuite)
+{
+    
+    ESP_LOGE("Hello", "\n\n\
+            ******************************\n \
+            TEST RESULTS : %s\n\
+            \t total tests      : %d \n\
+            \t failed           : %d\n\
+            \t Assertions       : %d\n\
+            \t failed           : %d\n\
+            ****************************** %s \n\n",  tSuite->name, tSuite->runTests, tSuite->failedTests,
+                                                tSuite->performedAssertions, tSuite->failedAssertions,
+                                                tSuite->flagError ? "FAIL" : "PASS" );
+    
 }

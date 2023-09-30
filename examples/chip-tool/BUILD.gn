@@ -131,6 +131,7 @@ executable("chip-tool") {
   deps = [
     ":chip-tool-utils",
     "${chip_root}/src/platform/logging:force_stdio",
+    "${chip_root}/src/crypto/tests",
   ]
 
   output_dir = root_out_dir

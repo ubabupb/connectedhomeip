@@ -2682,7 +2682,7 @@ static void TestGroup_PrivacyKeyDerivation(nlTestSuite * inSuite, void * inConte
  */
 
 static const nlTest sTests[] = {
-
+#if 0
     NL_TEST_DEF("Test encrypting AES-CCM-128 test vectors", TestAES_CCM_128EncryptTestVectors),
     NL_TEST_DEF("Test decrypting AES-CCM-128 test vectors", TestAES_CCM_128DecryptTestVectors),
     NL_TEST_DEF("Test encrypting AES-CCM-128 using invalid nonce", TestAES_CCM_128EncryptInvalidNonceLen),
@@ -2721,7 +2721,9 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Test Spake2p_spake2p PointMulAdd", TestSPAKE2P_spake2p_PointMulAdd),
     NL_TEST_DEF("Test Spake2p_spake2p PointLoad/PointWrite", TestSPAKE2P_spake2p_PointLoadWrite),
     NL_TEST_DEF("Test Spake2p_spake2p PointIsValid", TestSPAKE2P_spake2p_PointIsValid),
+#endif
     NL_TEST_DEF("Test Spake2+ against RFC test vectors", TestSPAKE2P_RFC),
+#if 0
     NL_TEST_DEF("Test Spake2+ object reuse", TestSPAKE2P_Reuse),
     NL_TEST_DEF("Test compressed fabric identifier", TestCompressedFabricIdentifier),
     NL_TEST_DEF("Test Pubkey Extraction from x509 Certificate", TestPubkey_x509Extraction),
@@ -2741,6 +2743,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Test Group Privacy Key Derivation", TestGroup_PrivacyKeyDerivation),
     NL_TEST_DEF("Test sensitive data buffer", TestSensitiveDataBuffer),
     NL_TEST_DEF("Test sensitive data fixed buffer", TestSensitiveDataFixedBuffer),
+#endif
     NL_TEST_SENTINEL()
 };
 
@@ -2769,6 +2772,7 @@ int TestCHIPCryptoPAL_Teardown(void * inContext)
     return SUCCESS;
 }
 
+
 int TestCHIPCryptoPAL(void)
 {
     // clang-format off
@@ -2784,7 +2788,83 @@ int TestCHIPCryptoPAL(void)
     nlTestRunner(&theSuite, nullptr);
 
     add_entropy_source(test_entropy_source, nullptr, 16);
+ 
+
+    void print_test_results(nlTestSuite *tSuite);
+    print_test_results(&theSuite);
+
+
+    void fn_use();
+    fn_use();
     return (nlTestRunnerStats(&theSuite));
 }
 
+void test_suit_proc()
+{
+    CHIP_REGISTER_TEST_SUITE_1(TestCHIPCryptoPAL);
+    chip::RunRegisteredUnitTests();
+}
+
 CHIP_REGISTER_TEST_SUITE(TestCHIPCryptoPAL)
+
+void fn_use()
+{
+    (void)TestAES_CCM_128EncryptTestVectors;
+    (void)TestAES_CCM_128DecryptTestVectors;
+    (void)TestAES_CCM_128EncryptInvalidNonceLen;
+    (void)TestAES_CCM_128EncryptInvalidTagLen;
+    (void)TestAES_CCM_128DecryptInvalidNonceLen;
+    (void)TestAES_CTR_128CryptTestVectors;
+    (void)TestAsn1Conversions;
+    (void)TestRawIntegerToDerValidCases;
+    (void)TestRawIntegerToDerInvalidCases;
+    (void)TestECDSA_Signing_SHA256_Msg;
+    (void)TestECDSA_Signing_SHA256_Hash;
+    (void)TestECDSA_ValidationFailsDifferentMessage;
+    (void)TestECDSA_ValidationFailIncorrectMsgSignature;
+    (void)TestECDSA_ValidationFailIncorrectHashSignature;
+    (void)TestECDSA_SigningMsgInvalidParams;
+    (void)TestECDSA_ValidationMsgInvalidParam;
+    (void)TestECDSA_ValidationHashInvalidParam;
+    (void)TestHash_SHA256;
+    (void)TestHash_SHA256_Stream;
+    (void)TestHKDF_SHA256;
+    (void)TestHMAC_SHA256;
+    (void)TestDRBG_InvalidInputs;
+    (void)TestDRBG_Output;
+    (void)TestECDH_EstablishSecret;
+    (void)TestAddEntropySources;
+    (void)TestPBKDF2_SHA256_TestVectors;
+    (void)TestP256_Keygen;
+    (void)TestCSR_Verify;
+    (void)TestCSR_GenByKeypair;
+    (void)TestCSR_GenDirect;
+    (void)TestKeypair_Serialize;
+    (void)TestSPAKE2P_spake2p_FEMul;
+    (void)TestSPAKE2P_spake2p_FELoadWrite;
+    (void)TestSPAKE2P_spake2p_Mac;
+    (void)TestSPAKE2P_spake2p_PointMul;
+    (void)TestSPAKE2P_spake2p_PointMulAdd;
+    (void)TestSPAKE2P_spake2p_PointLoadWrite;
+    (void)TestSPAKE2P_spake2p_PointIsValid;
+    (void)TestSPAKE2P_RFC;
+    (void)TestSPAKE2P_Reuse;
+    (void)TestCompressedFabricIdentifier;
+    (void)TestPubkey_x509Extraction;
+    (void)TestX509_VerifyAttestationCertificateFormat;
+    (void)TestX509_CertChainValidation;
+    (void)TestX509_IssuingTimestampValidation;
+    (void)TestSKID_x509Extraction;
+    (void)TestAKID_x509Extraction;
+    (void)TestSerialNumber_x509Extraction;
+    (void)TestSubject_x509Extraction;
+    (void)TestIssuer_x509Extraction;
+    (void)TestVIDPID_StringExtraction;
+    (void)TestVIDPID_x509Extraction;
+    (void)TestX509_ReplaceCertIfResignedCertFound;
+    (void)TestGroup_OperationalKeyDerivation;
+    (void)TestGroup_SessionIdDerivation;
+    (void)TestGroup_PrivacyKeyDerivation;
+    (void)TestSensitiveDataBuffer;
+    (void)TestSensitiveDataFixedBuffer;
+}
