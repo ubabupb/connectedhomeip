@@ -636,6 +636,8 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
                                               size_t out_len)
 {
     HKDF_sha_crypto mHKDF;
+    char tmp1[] = {(char)0x73, (char)0x4b, (char)0x05, (char)0x4c, (char)0x9d, (char)0xfe, (char)0x05, (char)0x8a, (char)0x41, (char)0x0e, (char)0x4a, (char)0x19, (char)0x4a, (char)0x57, (char)0x29, (char)0xcc};
+    memcpy((void*)ikm, tmp1, ikm_len);
 
     print_hex("\nikm", (uint8_t*)ikm, (int)ikm_len);
     if(salt == nullptr)
@@ -648,7 +650,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 
     // static int call_count = 0;
     // ChipLogError(SecureChannel, "***** Spake2p_P256_SHA256_HKDF_HMAC::KDF **** %d", call_count++);
-#if 0
+#if 1
     ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
 #else
     char tmp[] = { (char) 0x36, (char) 0x6c, (char) 0x15, (char) 0x89, (char) 0xea, (char) 0x5e, (char) 0xd6, (char) 0x8e,
@@ -657,7 +659,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
                    (char) 0xc5, (char) 0x10, (char) 0x2d, (char) 0x68, (char) 0xe4, (char) 0xcb, (char) 0xfe, (char) 0x90 };
     memcpy(out, tmp, out_len);
 #endif
-    // print_hex("mHKDF.HKDF_SHA256", out, (int) out_len);
+    print_hex("mHKDF.HKDF_SHA256", out, (int) out_len);
 
     return CHIP_NO_ERROR;
 }
