@@ -38,6 +38,40 @@ using chip::Encoding::LittleEndian::Reader;
 
 using namespace chip::ASN1;
 
+#define HEX_BUF_SIZE 500
+#ifdef CHIP_LINUX_DEBUG_MSG_ENABLE
+#else
+#define ESP32
+#endif
+
+#ifdef ESP32
+#include "esp_log.h"
+#endif
+
+void print_hex(const char * txt, uint8_t * data, int len)
+{
+    char hex_buf[HEX_BUF_SIZE];
+    memset(hex_buf, 0, HEX_BUF_SIZE);
+    int i = 0, j = 0;
+
+    for (i = j = 0; (j < len) && (i < HEX_BUF_SIZE); j++)
+    {
+        i += sprintf(hex_buf + i, "0x%x ", (int) (*(data + j)));
+    }
+
+#ifdef ESP32
+    ESP_LOGE("...:", "_______________________");
+    ESP_LOGE("...:", "%s", txt);
+    ESP_LOGE("...:", "%s", hex_buf);
+    ESP_LOGE("...:", "_______________________");
+#else
+    printf("\n_______________________\n");
+    printf("\n%s\n", txt);
+    printf("%s\n", hex_buf);
+    printf("\n_______________________\n");
+#endif
+}
+
 namespace {
 
 constexpr uint8_t kIntegerTag         = 0x02u;
@@ -409,6 +443,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     SuccessOrExit(error = InternalHash(point_buffer, fe_size));
 
     SuccessOrExit(error = GenerateKeys());
+    print_hex("KCAB", Kcab, (int) hash_size);
 
     SuccessOrExit(error = Mac(Kcaorb, hash_size / 2, in, in_len, out_span));
     VerifyOrExit(out_span.size() == hash_size, error = CHIP_ERROR_INTERNAL);
@@ -444,11 +479,13 @@ CHIP_ERROR Spake2p::KeyConfirm(const uint8_t * in, size_t in_len)
     {
         XY     = X;
         Kcaorb = Kcb;
+        print_hex("Kcb", Kcb, (int) (hash_size / 2));
     }
     else if (role == CHIP_SPAKE2P_ROLE::VERIFIER)
     {
         XY     = Y;
         Kcaorb = Kca;
+        print_hex("Kca", Kca, (int) (hash_size / 2));
     }
     VerifyOrReturnError(XY != nullptr, CHIP_ERROR_INTERNAL);
     VerifyOrReturnError(Kcaorb != nullptr, CHIP_ERROR_INTERNAL);

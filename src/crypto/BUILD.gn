@@ -157,6 +157,10 @@ static_library("crypto") {
     ]
   }
 
+  defines = [
+    "CHIP_LINUX_DEBUG_MSG_ENABLE"
+  ]
+
   public_configs = []
 
   cflags = [ "-Wconversion" ]
