@@ -637,6 +637,15 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 {
     HKDF_sha_crypto mHKDF;
 
+    print_hex("\nikm", (uint8_t*)ikm, (int)ikm_len);
+    if(salt == nullptr)
+    {
+        ChipLogError(SecureChannel, "---------  salt == nullptr");
+    } else {
+        print_hex("\nsalt", (uint8_t*)salt, (int)salt_len);
+    }
+    print_hex("\ninfo", (uint8_t*)info, (int)info_len);
+
     // static int call_count = 0;
     // ChipLogError(SecureChannel, "***** Spake2p_P256_SHA256_HKDF_HMAC::KDF **** %d", call_count++);
 #if 0
