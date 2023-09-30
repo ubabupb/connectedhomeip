@@ -636,10 +636,15 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
                                               size_t out_len)
 {
     HKDF_sha_crypto mHKDF;
+
+#if 1
+    print_hex("\nikm", (uint8_t*)ikm, (int)ikm_len);
+#else
     char tmp1[] = {(char)0x73, (char)0x4b, (char)0x05, (char)0x4c, (char)0x9d, (char)0xfe, (char)0x05, (char)0x8a, (char)0x41, (char)0x0e, (char)0x4a, (char)0x19, (char)0x4a, (char)0x57, (char)0x29, (char)0xcc};
     memcpy((void*)ikm, tmp1, ikm_len);
-
     print_hex("\nikm", (uint8_t*)ikm, (int)ikm_len);
+#endif
+
     if(salt == nullptr)
     {
         ChipLogError(SecureChannel, "---------  salt == nullptr");
