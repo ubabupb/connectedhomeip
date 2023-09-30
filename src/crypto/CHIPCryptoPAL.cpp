@@ -542,7 +542,11 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 {
     HKDF_sha_crypto mHKDF;
 
+    print_hex("\nikm", (uint8_t*)ikm, (int)ikm_len);
+    print_hex("\nsalt", (uint8_t*)salt, (int)salt_len);
+    print_hex("\ninfo", (uint8_t*)info, (int)info_len);
     ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
+    print_hex("\nout", (uint8_t*)out, (int)out_len);
 
     return CHIP_NO_ERROR;
 }
