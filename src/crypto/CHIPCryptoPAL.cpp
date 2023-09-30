@@ -38,7 +38,7 @@ using chip::Encoding::LittleEndian::Reader;
 
 using namespace chip::ASN1;
 
-#define HEX_BUF_SIZE 300
+#define HEX_BUF_SIZE 500
 #ifdef CHIP_LINUX_DEBUG_MSG_ENABLE
 #else
 #define ESP32
@@ -56,7 +56,7 @@ void print_hex(const char * txt, uint8_t * data, int len)
 
     for (i = j = 0; (j < len) && (i < HEX_BUF_SIZE); j++)
     {
-        i += sprintf(hex_buf + i, "0x%x ", (int) (*(data + j)));
+        i += sprintf(hex_buf + i, "%02x ", (int) (*(data + j)));
     }
 
 #ifdef ESP32
@@ -489,9 +489,33 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     SuccessOrExit(error = FEWrite(w0, point_buffer, fe_size));
     SuccessOrExit(error = InternalHash(point_buffer, fe_size));
 
-    print_hex("Z:", (uint8_t *)Z, 65);
-    print_hex("V:", (uint8_t *)V, 65);
-    print_hex("w0:", (uint8_t *)w0, 65);
+    // print_hex("Z:", (uint8_t *)Z, 65);
+    // print_hex("V:", (uint8_t *)V, 65);
+    // print_hex("w0:", (uint8_t *)w0, 65);
+
+    if(Z == nullptr)
+    {
+        ChipLogError(SecureChannel, "\n*** Z = nullptr");
+    } else
+    {
+        print_hex("***Z:", (uint8_t *)Z, 65);
+    }
+
+    if(V == nullptr)
+    {
+        ChipLogError(SecureChannel, "\n*** V = nullptr");
+    } else
+    {
+        print_hex("***V:", (uint8_t *)V, 65);
+    }
+
+    if(w0 == nullptr)
+    {
+        ChipLogError(SecureChannel, "\n*** w0 = nullptr");
+    } else
+    {
+        print_hex("***w0:", (uint8_t *)w0, 65);
+    }
 
     SuccessOrExit(error = GenerateKeys());
 
@@ -615,14 +639,16 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 
     // static int call_count = 0;
     // ChipLogError(SecureChannel, "***** Spake2p_P256_SHA256_HKDF_HMAC::KDF **** %d", call_count++);
-    // ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
+#if 0
+    ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
+#else
     char tmp[] = { (char) 0x36, (char) 0x6c, (char) 0x15, (char) 0x89, (char) 0xea, (char) 0x5e, (char) 0xd6, (char) 0x8e,
                    (char) 0x23, (char) 0x50, (char) 0xac, (char) 0x1c, (char) 0x7c, (char) 0x30, (char) 0xc5, (char) 0x13,
                    (char) 0xf8, (char) 0x5a, (char) 0xbe, (char) 0xc9, (char) 0xd1, (char) 0x83, (char) 0x3e, (char) 0x70,
                    (char) 0xc5, (char) 0x10, (char) 0x2d, (char) 0x68, (char) 0xe4, (char) 0xcb, (char) 0xfe, (char) 0x90 };
     memcpy(out, tmp, out_len);
-
-    print_hex("mHKDF.HKDF_SHA256", out, (int) out_len);
+#endif
+    // print_hex("mHKDF.HKDF_SHA256", out, (int) out_len);
 
     return CHIP_NO_ERROR;
 }
@@ -709,6 +735,8 @@ CHIP_ERROR Spake2pVerifier::ComputeWS(uint32_t pbkdf2IterCount, const ByteSpan &
     CHIP_ERROR err = pbkdf2.pbkdf2_sha256(littleEndianSetupPINCode, sizeof(littleEndianSetupPINCode), salt.data(), salt.size(),
                                           pbkdf2IterCount, ws_len, ws);
 
+    // printf("\n---------- ComputeWS endianess 2: %x %x %x %x \n", littleEndianSetupPINCode[0], littleEndianSetupPINCode[1],
+    //                                             littleEndianSetupPINCode[2], littleEndianSetupPINCode[3]);
     // char str[50];
     // sprintf(str, "\n%d:%s: %d %d\n", __LINE__, __func__, ws_len, ws);
     // ChipLogError(SecureChannel, "\n___________________ Xv3\n");

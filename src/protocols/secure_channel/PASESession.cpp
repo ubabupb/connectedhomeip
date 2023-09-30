@@ -271,13 +271,15 @@ CHIP_ERROR PASESession::SendPBKDFParamRequest()
 
     VerifyOrReturnError(GetLocalSessionId().HasValue(), CHIP_ERROR_INCORRECT_STATE);
 
-    // ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
-
+#if 1
+    ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
+#else
     char temp[] = { (char) 0xe4, (char) 0x8d, (char) 0x8a, (char) 0xb9, (char) 0x2e, (char) 0xb0, (char) 0x14, (char) 0x6b,
                     (char) 0x2,  (char) 0x32, (char) 0xcd, (char) 0xf7, (char) 0xb9, (char) 0xfe, (char) 0x45, (char) 0x24,
                     (char) 0x4a, (char) 0x6b, (char) 0x8d, (char) 0x41, (char) 0x96, (char) 0xb2, (char) 0xc8, (char) 0x74,
                     (char) 0x99, (char) 0xdc, (char) 0x1d, (char) 0xd6, (char) 0x16, (char) 0x87, (char) 0xd2, (char) 0x4e };
     memcpy(mPBKDFLocalRandomData, temp, sizeof(mPBKDFLocalRandomData));
+#endif
     print_hex("\nDRBG-req", mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData));
 
     const size_t mrpParamsSize = mLocalMRPConfig.HasValue() ? TLV::EstimateStructOverhead(sizeof(uint16_t), sizeof(uint16_t)) : 0;
@@ -389,15 +391,16 @@ CHIP_ERROR PASESession::SendPBKDFParamResponse(ByteSpan initiatorRandom, bool in
     MATTER_TRACE_EVENT_SCOPE("SendPBKDFParamResponse", "PASESession");
 
     VerifyOrReturnError(GetLocalSessionId().HasValue(), CHIP_ERROR_INCORRECT_STATE);
-
-    // ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
+#if 1
+    ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
     // print_hex_1("\nDRBG", mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData));
-
+#else
     char temp[] = { (char) 0x8,  (char) 0x63, (char) 0x4e, (char) 0x33, (char) 0xe9, (char) 0xea, (char) 0x49, (char) 0x5a,
                     (char) 0xfc, (char) 0x5a, (char) 0x98, (char) 0x3e, (char) 0x3b, (char) 0x10, (char) 0x35, (char) 0x35,
                     (char) 0x92, (char) 0xdd, (char) 0x62, (char) 0xe3, (char) 0x1c, (char) 0xc0, (char) 0x27, (char) 0x10,
                     (char) 0x0,  (char) 0xdd, (char) 0x4e, (char) 0x11, (char) 0x58, (char) 0x5a, (char) 0x92, (char) 0x9d };
     memcpy(mPBKDFLocalRandomData, temp, sizeof(mPBKDFLocalRandomData));
+#endif
     print_hex("\nDRBG-resp", mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData));
 
     const size_t mrpParamsSize = mLocalMRPConfig.HasValue() ? TLV::EstimateStructOverhead(sizeof(uint16_t), sizeof(uint16_t)) : 0;

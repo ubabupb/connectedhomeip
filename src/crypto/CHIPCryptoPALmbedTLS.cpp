@@ -471,7 +471,8 @@ CHIP_ERROR DRBG_get_bytes(uint8_t * out_buffer, const size_t out_length)
     return CHIP_NO_ERROR;
 }
 
-static int CryptoRNG_fe(void * ctxt, uint8_t * out_buffer, size_t out_length)
+#if 0
+[[maybe_unused]] static int CryptoRNG_fe(void * ctxt, uint8_t * out_buffer, size_t out_length)
 {
     char rng[] = { (char) 0x37, (char) 0x80, (char) 0xe9, (char) 0x9f, (char) 0xbc, (char) 0xa2, (char) 0xe6, (char) 0x2b,
                    (char) 0x35, (char) 0x6c, (char) 0x49, (char) 0x7d, (char) 0xfc, (char) 0x9c, (char) 0x50, (char) 0xd6,
@@ -482,6 +483,7 @@ static int CryptoRNG_fe(void * ctxt, uint8_t * out_buffer, size_t out_length)
     print_hex("CryptoRNG_fe", out_buffer, out_length);
     return 0;
 }
+#endif
 
 static int CryptoRNG(void * ctxt, uint8_t * out_buffer, size_t out_length)
 {
@@ -1107,7 +1109,11 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::FEGenerate(void * fe)
 
     Spake2p_Context * context = to_inner_spake2p_context(&mSpake2pContext);
 
+#if 1
+    result = mbedtls_ecp_gen_privkey(&context->curve, (mbedtls_mpi *) fe, CryptoRNG, nullptr);
+#else
     result = mbedtls_ecp_gen_privkey(&context->curve, (mbedtls_mpi *) fe, CryptoRNG_fe, nullptr);
+#endif
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
 exit:
