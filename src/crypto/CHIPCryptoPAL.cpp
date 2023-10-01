@@ -334,9 +334,16 @@ CHIP_ERROR Spake2p::BeginVerifier(const uint8_t * my_identity, size_t my_identit
 
     ReturnErrorOnFailure(InternalHash(peer_identity, peer_identity_len));
     ReturnErrorOnFailure(InternalHash(my_identity, my_identity_len));
+
+    print_hex("peer_identity", (uint8_t*)peer_identity, peer_identity_len);
+    print_hex("my_identity", (uint8_t*)my_identity, my_identity_len);
+
     ReturnErrorOnFailure(WriteMN());
     ReturnErrorOnFailure(FELoad(w0in, w0in_len, w0));
     ReturnErrorOnFailure(PointLoad(Lin, Lin_len, L));
+
+    print_hex("w0in", (uint8_t*)w0in, w0in_len);
+    print_hex("Lin", (uint8_t*)Lin, Lin_len);
 
     state = CHIP_SPAKE2P_STATE::STARTED;
     role  = CHIP_SPAKE2P_ROLE::VERIFIER;
@@ -351,9 +358,16 @@ CHIP_ERROR Spake2p::BeginProver(const uint8_t * my_identity, size_t my_identity_
 
     ReturnErrorOnFailure(InternalHash(my_identity, my_identity_len));
     ReturnErrorOnFailure(InternalHash(peer_identity, peer_identity_len));
+
+    print_hex("peer_identity", (uint8_t*)peer_identity, peer_identity_len);
+    print_hex("my_identity", (uint8_t*)my_identity, my_identity_len);
+
     ReturnErrorOnFailure(WriteMN());
     ReturnErrorOnFailure(FELoad(w0in, w0in_len, w0));
     ReturnErrorOnFailure(FELoad(w1in, w1in_len, w1));
+
+    print_hex("w0in", (uint8_t*)w0in, w0in_len);
+    print_hex("w1in", (uint8_t*)w1in, w1in_len);
 
     state = CHIP_SPAKE2P_STATE::STARTED;
     role  = CHIP_SPAKE2P_ROLE::PROVER;
@@ -413,6 +427,9 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         SuccessOrExit(error = InternalHash(point_buffer, point_size));
         SuccessOrExit(error = InternalHash(in, in_len));
 
+        print_hex("point_buffer-ComputeRoundTwo#1A", (uint8_t *)point_buffer, point_size);
+        print_hex("in-ComputeRoundTwo#1A", (uint8_t *)in, in_len);
+
         MN     = N;
         XY     = Y;
         Kcaorb = Kca;
@@ -423,6 +440,9 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         SuccessOrExit(error = InternalHash(in, in_len));
         SuccessOrExit(error = PointWrite(Y, point_buffer, point_size));
         SuccessOrExit(error = InternalHash(point_buffer, point_size));
+
+        print_hex("point_buffer-ComputeRoundTwo#1B", (uint8_t *)point_buffer, point_size);
+        print_hex("in-ComputeRoundTwo#1B", (uint8_t *)in, in_len);
 
         MN     = M;
         XY     = X;
@@ -482,12 +502,15 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     SuccessOrExit(error = PointCofactorMul(V));
     SuccessOrExit(error = PointWrite(Z, point_buffer, point_size));
     SuccessOrExit(error = InternalHash(point_buffer, point_size));
+    print_hex("point_buffer-ComputeRoundTwo#2", (uint8_t *)point_buffer, point_size);
 
     SuccessOrExit(error = PointWrite(V, point_buffer, point_size));
     SuccessOrExit(error = InternalHash(point_buffer, point_size));
+    print_hex("point_buffer-ComputeRoundTwo#3", (uint8_t *)point_buffer, point_size);
 
     SuccessOrExit(error = FEWrite(w0, point_buffer, fe_size));
     SuccessOrExit(error = InternalHash(point_buffer, fe_size));
+    print_hex("point_buffer-ComputeRoundTwo#4", (uint8_t *)point_buffer, point_size);
 
     // print_hex("Z:", (uint8_t *)Z, 65);
     // print_hex("V:", (uint8_t *)V, 65);
@@ -498,7 +521,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         ChipLogError(SecureChannel, "\n*** Z = nullptr");
     } else
     {
-        print_hex("***Z:", (uint8_t *)Z, 65);
+        print_hex("Z:", (uint8_t *)Z, 65);
     }
 
     if(V == nullptr)
@@ -506,7 +529,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         ChipLogError(SecureChannel, "\n*** V = nullptr");
     } else
     {
-        print_hex("***V:", (uint8_t *)V, 65);
+        print_hex("V:", (uint8_t *)V, 65);
     }
 
     if(w0 == nullptr)
@@ -514,7 +537,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         ChipLogError(SecureChannel, "\n*** w0 = nullptr");
     } else
     {
-        print_hex("***w0:", (uint8_t *)w0, 65);
+        print_hex("w0:", (uint8_t *)w0, 65);
     }
 
     SuccessOrExit(error = GenerateKeys());
@@ -536,12 +559,16 @@ exit:
 CHIP_ERROR Spake2p::GenerateKeys()
 {
     static const uint8_t info_keyconfirm[16] = { 'C', 'o', 'n', 'f', 'i', 'r', 'm', 'a', 't', 'i', 'o', 'n', 'K', 'e', 'y', 's' };
+    
+    uint8_t info_keyconfirm_tmp[16];
+    memcpy(info_keyconfirm_tmp, info_keyconfirm, 16);
 
     MutableByteSpan Kae_span{ &Kae[0], sizeof(Kae) };
 
+    print_hex("Kae - GenerateKeys1", Kae, sizeof(Kae));
     ReturnErrorOnFailure(HashFinalize(Kae_span));
-    print_hex("Kae - GenerateKeys", Kae, sizeof(Kae));
-    ReturnErrorOnFailure(KDF(Ka, hash_size / 2, nullptr, 0, info_keyconfirm, sizeof(info_keyconfirm), Kcab, hash_size));
+    print_hex("Kae - GenerateKeys2", Kae, sizeof(Kae));
+    ReturnErrorOnFailure(KDF(Ka, hash_size / 2, nullptr, 0, info_keyconfirm_tmp, sizeof(info_keyconfirm_tmp), Kcab, hash_size));
 
     return CHIP_NO_ERROR;
 }
@@ -641,6 +668,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 {
     HKDF_sha_crypto mHKDF;
 
+    // os_printf("\ninfo addr: %d\n", info);
 #if 1
     print_hex("\nikm", (uint8_t*)ikm, (int)ikm_len);
 #else
@@ -668,7 +696,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
                    (char) 0xc5, (char) 0x10, (char) 0x2d, (char) 0x68, (char) 0xe4, (char) 0xcb, (char) 0xfe, (char) 0x90 };
     memcpy(out, tmp, out_len);
 #endif
-    print_hex("mHKDF.HKDF_SHA256", out, (int) out_len);
+    // print_hex("mHKDF.HKDF_SHA256", out, (int) out_len);
 
     return CHIP_NO_ERROR;
 }
