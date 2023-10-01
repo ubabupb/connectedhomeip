@@ -293,29 +293,29 @@ CHIP_ERROR CommissioningWindowManager::AdvertiseAndListenForPASE()
 
         ReturnErrorOnFailure(verifier.Deserialize(ByteSpan(serializedVerifier)));
 
-        ChipLogError(SecureChannel, "TEST STRINGS !!!!");
-        char str[200];
-        snprintf(str, 150, "\n %d %s\n", 28, "HELLO, test string");
-#ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
-        ChipLogError(SecureChannel, str);
-#endif
+//         ChipLogError(SecureChannel, "TEST STRINGS !!!!");
+//         char str[200];
+//         snprintf(str, 150, "\n %d %s\n", 28, "HELLO, test string");
+// #ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
+//         ChipLogError(SecureChannel, str);
+// #endif
 
-        snprintf(str, 150, "\nIterationCount-commissionableDataProvider: %d\n", iterationCount);
-#ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
-        ChipLogError(SecureChannel, str);
-#endif
+//         snprintf(str, 150, "\nIterationCount-commissionableDataProvider: %d\n", iterationCount);
+// #ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
+//         ChipLogError(SecureChannel, str);
+// #endif
 
-        print_hex("salt-commissionableDataProvider:", saltSpan.data(), (int)saltSpan.size());
-        snprintf(str, 150,"\nsalt-commissionableDataProvider: %s\n", saltSpan.data());
-#ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
-        ChipLogError(SecureChannel, str);
-#endif
+//         print_hex("salt-commissionableDataProvider:", saltSpan.data(), (int)saltSpan.size());
+//         snprintf(str, 150,"\nsalt-commissionableDataProvider: %s\n", saltSpan.data());
+// #ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
+//         ChipLogError(SecureChannel, str);
+// #endif
 
-        print_hex("Verifier-commissionableDataProvider:", verifierSpan.data(), (int)verifierSpan.size());
-        snprintf(str, 150,"\nVerifier-commissionableDataProvider: %s\n", verifierSpan.data());
-#ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
-        ChipLogError(SecureChannel, str);
-#endif
+//         print_hex("Verifier-commissionableDataProvider:", verifierSpan.data(), (int)verifierSpan.size());
+//         snprintf(str, 150,"\nVerifier-commissionableDataProvider: %s\n", verifierSpan.data());
+// #ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
+//         ChipLogError(SecureChannel, str);
+// #endif
 
         ReturnErrorOnFailure(mPairingSession.WaitForPairing(mServer->GetSecureSessionManager(), verifier, iterationCount, saltSpan,
                                                             GetLocalMRPConfig(), this));
