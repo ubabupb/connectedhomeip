@@ -335,15 +335,15 @@ CHIP_ERROR Spake2p::BeginVerifier(const uint8_t * my_identity, size_t my_identit
     ReturnErrorOnFailure(InternalHash(peer_identity, peer_identity_len));
     ReturnErrorOnFailure(InternalHash(my_identity, my_identity_len));
 
-    print_hex("peer_identity", (uint8_t*)peer_identity, peer_identity_len);
-    print_hex("my_identity", (uint8_t*)my_identity, my_identity_len);
+    print_hex("peer_identity", (uint8_t*)peer_identity, (int)peer_identity_len);
+    print_hex("my_identity", (uint8_t*)my_identity, (int)my_identity_len);
 
     ReturnErrorOnFailure(WriteMN());
     ReturnErrorOnFailure(FELoad(w0in, w0in_len, w0));
     ReturnErrorOnFailure(PointLoad(Lin, Lin_len, L));
 
-    print_hex("w0in", (uint8_t*)w0in, w0in_len);
-    print_hex("Lin", (uint8_t*)Lin, Lin_len);
+    print_hex("w0in", (uint8_t*)w0in, (int)w0in_len);
+    print_hex("Lin", (uint8_t*)Lin, (int)Lin_len);
 
     state = CHIP_SPAKE2P_STATE::STARTED;
     role  = CHIP_SPAKE2P_ROLE::VERIFIER;
@@ -359,15 +359,15 @@ CHIP_ERROR Spake2p::BeginProver(const uint8_t * my_identity, size_t my_identity_
     ReturnErrorOnFailure(InternalHash(my_identity, my_identity_len));
     ReturnErrorOnFailure(InternalHash(peer_identity, peer_identity_len));
 
-    print_hex("peer_identity", (uint8_t*)peer_identity, peer_identity_len);
-    print_hex("my_identity", (uint8_t*)my_identity, my_identity_len);
+    print_hex("peer_identity", (uint8_t*)peer_identity, (int)peer_identity_len);
+    print_hex("my_identity", (uint8_t*)my_identity, (int)my_identity_len);
 
     ReturnErrorOnFailure(WriteMN());
     ReturnErrorOnFailure(FELoad(w0in, w0in_len, w0));
     ReturnErrorOnFailure(FELoad(w1in, w1in_len, w1));
 
-    print_hex("w0in", (uint8_t*)w0in, w0in_len);
-    print_hex("w1in", (uint8_t*)w1in, w1in_len);
+    print_hex("w0in", (uint8_t*)w0in, (int)w0in_len);
+    print_hex("w1in", (uint8_t*)w1in, (int)w1in_len);
 
     state = CHIP_SPAKE2P_STATE::STARTED;
     role  = CHIP_SPAKE2P_ROLE::PROVER;
@@ -427,8 +427,8 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         SuccessOrExit(error = InternalHash(point_buffer, point_size));
         SuccessOrExit(error = InternalHash(in, in_len));
 
-        print_hex("point_buffer-ComputeRoundTwo#1A", (uint8_t *)point_buffer, point_size);
-        print_hex("in-ComputeRoundTwo#1A", (uint8_t *)in, in_len);
+        print_hex("point_buffer-ComputeRoundTwo#1A", (uint8_t *)point_buffer, (int)point_size);
+        print_hex("in-ComputeRoundTwo#1A", (uint8_t *)in, (int)in_len);
 
         MN     = N;
         XY     = Y;
@@ -441,8 +441,8 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         SuccessOrExit(error = PointWrite(Y, point_buffer, point_size));
         SuccessOrExit(error = InternalHash(point_buffer, point_size));
 
-        print_hex("point_buffer-ComputeRoundTwo#1B", (uint8_t *)point_buffer, point_size);
-        print_hex("in-ComputeRoundTwo#1B", (uint8_t *)in, in_len);
+        print_hex("point_buffer-ComputeRoundTwo#1B", (uint8_t *)point_buffer, (int)point_size);
+        print_hex("in-ComputeRoundTwo#1B", (uint8_t *)in, (int)in_len);
 
         MN     = M;
         XY     = X;
@@ -502,15 +502,15 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     SuccessOrExit(error = PointCofactorMul(V));
     SuccessOrExit(error = PointWrite(Z, point_buffer, point_size));
     SuccessOrExit(error = InternalHash(point_buffer, point_size));
-    print_hex("point_buffer-ComputeRoundTwo#2", (uint8_t *)point_buffer, point_size);
+    print_hex("point_buffer-ComputeRoundTwo#2", (uint8_t *)point_buffer, (int)point_size);
 
     SuccessOrExit(error = PointWrite(V, point_buffer, point_size));
     SuccessOrExit(error = InternalHash(point_buffer, point_size));
-    print_hex("point_buffer-ComputeRoundTwo#3", (uint8_t *)point_buffer, point_size);
+    print_hex("point_buffer-ComputeRoundTwo#3", (uint8_t *)point_buffer, (int)point_size);
 
     SuccessOrExit(error = FEWrite(w0, point_buffer, fe_size));
     SuccessOrExit(error = InternalHash(point_buffer, fe_size));
-    print_hex("point_buffer-ComputeRoundTwo#4", (uint8_t *)point_buffer, point_size);
+    print_hex("point_buffer-ComputeRoundTwo#4", (uint8_t *)point_buffer, (int)point_size);
 
     // print_hex("Z:", (uint8_t *)Z, 65);
     // print_hex("V:", (uint8_t *)V, 65);

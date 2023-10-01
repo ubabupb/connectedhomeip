@@ -48,6 +48,12 @@ static_library("server") {
 
   cflags = [ "-Wconversion" ]
 
+  if(target_os == "linux") {
+    defines = [
+      "CHIP_LINUX_DEBUG_MSG_ENABLE",
+    ]
+  }
+
   public_deps = [
     "${chip_root}/src/app",
     "${chip_root}/src/lib/address_resolve",

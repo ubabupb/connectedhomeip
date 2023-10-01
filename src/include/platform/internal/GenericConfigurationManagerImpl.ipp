@@ -51,6 +51,8 @@
 // TODO : may be we can make it configurable
 #define BLE_ADVERTISEMENT_VERSION 0
 
+void print_hex(const char * txt, uint8_t * data, int len);
+
 namespace chip {
 namespace DeviceLayer {
 namespace Internal {
@@ -169,21 +171,31 @@ CHIP_ERROR LegacyTemporaryCommissionableDataProvider<ConfigClass>::GetSpake2pSal
     CHIP_ERROR err                          = CHIP_NO_ERROR;
     char saltB64[kSpake2pSalt_MaxBase64Len] = { 0 };
     size_t saltB64Len                       = 0;
+    char str[200];
+
+    print_hex("salt:", (uint8_t*)saltB64, (int)saltB64Len);
+    snprintf(str, 150, "\n__________________________     salt addr: %x\n", (unsigned int)saltB64);
+    ChipLogError(SecureChannel, str);
 
     err = mGenericConfigManager.ReadConfigValueStr(ConfigClass::kConfigKey_Spake2pSalt, saltB64, sizeof(saltB64), saltB64Len);
 
-    char str[100];
-    sprintf(str, "\n__________________________ getsalt err?: %d, %s\n", err.AsInteger(), err.AsString());
+    snprintf(str, 150, "\n__________________________ getsalt err?: %d, %s\n", err.AsInteger(), err.AsString());
     ChipLogError(SecureChannel, str);
 #if defined(CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_SALT)
     if (err == CHIP_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         ChipLogError(SecureChannel, "\n__________________________ get default salt");
+#if 0
         saltB64Len = strlen(CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_SALT);
         ReturnErrorCodeIf(saltB64Len > sizeof(saltB64), CHIP_ERROR_BUFFER_TOO_SMALL);
         memcpy(saltB64, CHIP_DEVICE_CONFIG_USE_TEST_SPAKE2P_SALT, saltB64Len);
+#else
+        saltB64Len = 16;
+        memcpy(saltB64, "U1BBS0UyUCBLZXkgU2FsdA==", saltB64Len);
+#endif
 
-        sprintf(str, "\n__________________________ salt data: %d, %s\n", saltB64Len, saltB64);
+        print_hex("salt:", (uint8_t*)saltB64, (int)saltB64Len);
+        snprintf(str, 150, "\n__________________________ salt data: %d, %s\n", saltB64Len, saltB64);
         ChipLogError(SecureChannel, str);
 
         err = CHIP_NO_ERROR;
@@ -201,8 +213,11 @@ CHIP_ERROR LegacyTemporaryCommissionableDataProvider<ConfigClass>::GetSpake2pSal
     saltBuf.reduce_size(saltLen);
 
     // char str[100];
-    sprintf(str, "\n__________________________ getsalt: %d, %s\n", saltBuf.size(), saltBuf.data());
-    ChipLogError(SecureChannel, str);    
+    snprintf(str, 150, "\n__________________________ getsalt: %d, %s\n", saltBuf.size(), saltBuf.data());
+    ChipLogError(SecureChannel, str); 
+
+    snprintf(str, 150, "\n__________________________     salt bytespan addr: %x\n", (unsigned int)saltBuf.data()); 
+    ChipLogError(SecureChannel, str);  
 
     return CHIP_NO_ERROR;
 }
