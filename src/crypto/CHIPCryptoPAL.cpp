@@ -48,6 +48,12 @@ using namespace chip::ASN1;
 #include "esp_log.h"
 #endif
 
+extern "C"
+{
+void df_debug_hexdump(const char *prefix, const void *data, size_t len);
+}
+
+
 void print_hex(const char * txt, uint8_t * data, int len)
 {
     char hex_buf[HEX_BUF_SIZE];
@@ -72,20 +78,7 @@ void print_hex(const char * txt, uint8_t * data, int len)
 #endif
 }
 
-void print_str(const char * txt, char* str)
-{
-#ifdef ESP32
-    ESP_LOGE("...:", "_______________________");
-    ESP_LOGE("...:", "%s", txt);
-    ESP_LOGE("...:", "%s", str);
-    ESP_LOGE("...:", "_______________________");
-#else
-    printf("\n_______________________\n");
-    printf("\n%s\n", txt);
-    printf("%s\n", str);
-    printf("\n_______________________\n");
-#endif
-}
+
 
 namespace {
 
@@ -335,6 +328,7 @@ CHIP_ERROR Spake2p::BeginVerifier(const uint8_t * my_identity, size_t my_identit
     ReturnErrorOnFailure(InternalHash(peer_identity, peer_identity_len));
     ReturnErrorOnFailure(InternalHash(my_identity, my_identity_len));
 
+    ChipLogError(SecureChannel, "BeginVerifier");
     print_hex("peer_identity", (uint8_t*)peer_identity, (int)peer_identity_len);
     print_hex("my_identity", (uint8_t*)my_identity, (int)my_identity_len);
 
@@ -359,8 +353,9 @@ CHIP_ERROR Spake2p::BeginProver(const uint8_t * my_identity, size_t my_identity_
     ReturnErrorOnFailure(InternalHash(my_identity, my_identity_len));
     ReturnErrorOnFailure(InternalHash(peer_identity, peer_identity_len));
 
-    print_hex("peer_identity", (uint8_t*)peer_identity, (int)peer_identity_len);
+    ChipLogError(SecureChannel, "BeginProver");
     print_hex("my_identity", (uint8_t*)my_identity, (int)my_identity_len);
+    print_hex("peer_identity", (uint8_t*)peer_identity, (int)peer_identity_len);
 
     ReturnErrorOnFailure(WriteMN());
     ReturnErrorOnFailure(FELoad(w0in, w0in_len, w0));
@@ -687,6 +682,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 
     // static int call_count = 0;
     // ChipLogError(SecureChannel, "***** Spake2p_P256_SHA256_HKDF_HMAC::KDF **** %d", call_count++);
+// HARDCODED_BUFFER 4 Randomness
 #if 0
     ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
 #else

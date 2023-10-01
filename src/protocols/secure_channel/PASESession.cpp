@@ -280,7 +280,8 @@ CHIP_ERROR PASESession::SendPBKDFParamRequest()
 
     VerifyOrReturnError(GetLocalSessionId().HasValue(), CHIP_ERROR_INCORRECT_STATE);
 
-#if 1
+// HARDCODED_BUFFER Randomness 1
+#if 0
     ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
 #else
     char temp[] = { (char) 0xe4, (char) 0x8d, (char) 0x8a, (char) 0xb9, (char) 0x2e, (char) 0xb0, (char) 0x14, (char) 0x6b,
@@ -400,7 +401,9 @@ CHIP_ERROR PASESession::SendPBKDFParamResponse(ByteSpan initiatorRandom, bool in
     MATTER_TRACE_EVENT_SCOPE("SendPBKDFParamResponse", "PASESession");
 
     VerifyOrReturnError(GetLocalSessionId().HasValue(), CHIP_ERROR_INCORRECT_STATE);
-#if 1
+
+// HARDCODED_BUFFER Randomness 2
+#if 0
     ReturnErrorOnFailure(DRBG_get_bytes(mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData)));
     // print_hex_1("\nDRBG", mPBKDFLocalRandomData, sizeof(mPBKDFLocalRandomData));
 #else
