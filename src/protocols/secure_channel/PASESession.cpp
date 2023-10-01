@@ -192,9 +192,18 @@ CHIP_ERROR PASESession::WaitForPairing(SessionManager & sessionManager, const Sp
     VerifyOrExit(mSalt != nullptr, err = CHIP_ERROR_NO_MEMORY);
 
     memmove(mSalt, salt.data(), mSaltLength);
+    print_hex("mSalt:", (uint8_t*)salt.data(), (int)mSaltLength);
     memmove(&mPASEVerifier, &verifier, sizeof(verifier));
+    print_hex("mPASEVerifier:", (uint8_t*)&mPASEVerifier, sizeof(verifier));
 
     mIterationCount = pbkdf2IterCount;
+
+    char str[200];
+    snprintf(str, 150, "\n pbkdf2IterCount: %d", mIterationCount);
+#ifndef CHIP_LINUX_DEBUG_MSG_ENABLE
+    ChipLogError(SecureChannel, str);
+#endif
+
     mNextExpectedMsg.SetValue(MsgType::PBKDFParamRequest);
     mPairingComplete = false;
     mLocalMRPConfig  = mrpLocalConfig;
