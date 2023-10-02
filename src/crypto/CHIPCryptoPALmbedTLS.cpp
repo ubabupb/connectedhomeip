@@ -1121,10 +1121,6 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::FEGenerate(void * fe)
 #endif
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
 
-
-    // ESP_LOGE("FEGenerate(xy) n", "xy->n %d", ((mbedtls_mpi*)fe)->n);
-    // print_hex("FEGenerate(xy)", (uint8_t*)(((mbedtls_mpi*)fe)->p), (int)(((mbedtls_mpi*)fe)->n));
-
 exit:
     _log_mbedTLS_error(result);
     return error;
