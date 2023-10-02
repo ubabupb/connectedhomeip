@@ -1062,13 +1062,17 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::MacVerify(const uint8_t * key, size_t 
     CHIP_ERROR error = CHIP_NO_ERROR;
     int result       = 0;
 
+    print_hex("MacVerify:key", (uint8_t*)key, (int)key_len);
+    print_hex("MacVerify:in", (uint8_t*)in, (int)in_len);
+
     uint8_t computed_mac[kSHA256_Hash_Length];
     MutableByteSpan computed_mac_span{ computed_mac };
     VerifyOrExit(mac_len == kSHA256_Hash_Length, error = CHIP_ERROR_INVALID_ARGUMENT);
 
     SuccessOrExit(error = Mac(key, key_len, in, in_len, computed_mac_span));
     VerifyOrExit(computed_mac_span.size() == mac_len, error = CHIP_ERROR_INTERNAL);
-    print_hex("MacVerify", computed_mac_span.data(), (int)computed_mac_span.size());
+    print_hex("MacVerify:computed_mac_span", computed_mac_span.data(), (int)computed_mac_span.size());
+    print_hex("MacVerify:mac", (uint8_t*)mac, (int)mac_len);
 
     VerifyOrExit(IsBufferContentEqualConstantTime(mac, computed_mac, kSHA256_Hash_Length), error = CHIP_ERROR_INTERNAL);
 
@@ -1116,6 +1120,10 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::FEGenerate(void * fe)
     result = mbedtls_ecp_gen_privkey(&context->curve, (mbedtls_mpi *) fe, CryptoRNG_fe, nullptr);
 #endif
     VerifyOrExit(result == 0, error = CHIP_ERROR_INTERNAL);
+
+
+    // ESP_LOGE("FEGenerate(xy) n", "xy->n %d", ((mbedtls_mpi*)fe)->n);
+    // print_hex("FEGenerate(xy)", (uint8_t*)(((mbedtls_mpi*)fe)->p), (int)(((mbedtls_mpi*)fe)->n));
 
 exit:
     _log_mbedTLS_error(result);

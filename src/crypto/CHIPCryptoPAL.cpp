@@ -39,20 +39,20 @@ using chip::Encoding::LittleEndian::Reader;
 using namespace chip::ASN1;
 
 #define HEX_BUF_SIZE 500
+
 #ifdef CHIP_LINUX_DEBUG_MSG_ENABLE
 #else
-#define ESP32
+    #define ESP32
 #endif
 
 #ifdef ESP32
-#include "esp_log.h"
+    #include "esp_log.h"
 #endif
 
 extern "C"
 {
 void df_debug_hexdump(const char *prefix, const void *data, size_t len);
 }
-
 
 void print_hex(const char * txt, uint8_t * data, int len)
 {
@@ -71,13 +71,27 @@ void print_hex(const char * txt, uint8_t * data, int len)
     ESP_LOGE("...:", "%s", hex_buf);
     ESP_LOGE("...:", "_______________________");
 #else
-    printf("\n_______________________\n");
-    printf("\n%s\n", txt);
-    printf("%s\n", hex_buf);
-    printf("\n_______________________\n");
+    printf("\n...:_______________________\n");
+    printf("\n...:%s", txt);
+    printf("\n...:%s", hex_buf);
+    printf("\n...:_______________________\n");
 #endif
 }
 
+// void print_str(const char * txt, const char * str, ...)
+// {
+// #ifdef ESP32
+//     ESP_LOGE("...:", "_______________________");
+//     ESP_LOGE("...:", "%s", txt);
+//     ESP_LOGE("...:", "%s", str);
+//     ESP_LOGE("...:", "_______________________");
+// #else
+//     printf("\n_______________________\n");
+//     printf("\n%s\n", txt);
+//     printf("%s\n", hex_buf);
+//     printf("\n_______________________\n");
+// #endif
+// }
 
 
 namespace {
@@ -297,6 +311,7 @@ Spake2p::Spake2p(size_t _fe_size, size_t _point_size, size_t _hash_size)
 
 CHIP_ERROR Spake2p::Init(const uint8_t * context, size_t context_len)
 {
+    ChipLogError(SecureChannel, "--------------------------- Spake2p::Init");
     if (state != CHIP_SPAKE2P_STATE::PREINIT)
     {
         Clear();
@@ -369,16 +384,44 @@ CHIP_ERROR Spake2p::BeginProver(const uint8_t * my_identity, size_t my_identity_
     return CHIP_NO_ERROR;
 }
 
+
+#include <mbedtls/bignum.h>
+#include <mbedtls/ccm.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/ecdh.h>
+#include <mbedtls/ecdsa.h>
+#include <mbedtls/ecp.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/error.h>
+#include <mbedtls/hkdf.h>
+#include <mbedtls/md.h>
+#include <mbedtls/pkcs5.h>
+#include <mbedtls/sha1.h>
+#include <mbedtls/sha256.h>
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#include <mbedtls/x509_crt.h>
+#endif // defined(MBEDTLS_X509_CRT_PARSE_C)
+#include <mbedtls/oid.h>
+#include <mbedtls/x509.h>
+#include <mbedtls/x509_csr.h>
+
 CHIP_ERROR Spake2p::ComputeRoundOne(const uint8_t * pab, size_t pab_len, uint8_t * out, size_t * out_len)
 {
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
     void * MN        = nullptr; // Choose M if a prover, N if a verifier
     void * XY        = nullptr; // Choose X if a prover, Y if a verifier
+    // char str[200];
 
     VerifyOrExit(state == CHIP_SPAKE2P_STATE::STARTED, error = CHIP_ERROR_INTERNAL);
     VerifyOrExit(*out_len >= point_size, error = CHIP_ERROR_INTERNAL);
 
     ReturnErrorOnFailure(FEGenerate(xy));
+
+    // snprintf(str, 180, "FEGenerate(xy) xy->n %d", ((mbedtls_mpi*)xy)->n);
+    // ChipLogError(SecureChannel, str);
+    ChipLogError(SecureChannel, "\nFEGenerate(xy) xy->n %d", (int)((mbedtls_mpi*)xy)->n);
+    // ESP_LOGE("FEGenerate(xy) n", "xy->n %d", ((mbedtls_mpi*)xy)->n);
+    print_hex("FEGenerate(xy) p", (uint8_t*)(((mbedtls_mpi*)xy)->p), (int)(((mbedtls_mpi*)xy)->n));
 
     if (role == CHIP_SPAKE2P_ROLE::PROVER)
     {
@@ -396,6 +439,11 @@ CHIP_ERROR Spake2p::ComputeRoundOne(const uint8_t * pab, size_t pab_len, uint8_t
     SuccessOrExit(error = PointAddMul(XY, G, xy, MN, w0));
     SuccessOrExit(error = PointWrite(XY, out, *out_len));
 
+    // print_hex("FEGenerate:MN", (uint8_t*)MN, 100);
+    // print_hex("FEGenerate:XY", (uint8_t*)XY, 100);
+    // print_hex("FEGenerate:G ", (uint8_t*)G, 100);
+    // print_hex("FEGenerate:out ", (uint8_t*)out, 100);
+
     state = CHIP_SPAKE2P_STATE::R1;
     error = CHIP_NO_ERROR;
 exit:
@@ -411,6 +459,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     void * MN        = nullptr; // Choose N if a prover, M if a verifier
     void * XY        = nullptr; // Choose Y if a prover, X if a verifier
     uint8_t * Kcaorb = nullptr; // Choose Kca if a prover, Kcb if a verifier
+    // char str[200];
 
     VerifyOrExit(*out_len >= hash_size, error = CHIP_ERROR_INTERNAL);
     VerifyOrExit(state == CHIP_SPAKE2P_STATE::R1, error = CHIP_ERROR_INTERNAL);
@@ -423,6 +472,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         SuccessOrExit(error = InternalHash(in, in_len));
 
         print_hex("point_buffer-ComputeRoundTwo#1A", (uint8_t *)point_buffer, (int)point_size);
+        ChipLogError(SecureChannel, "Computed in PC, used as MacVerify:in at device");
         print_hex("in-ComputeRoundTwo#1A", (uint8_t *)in, (int)in_len);
 
         MN     = N;
@@ -437,6 +487,7 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         SuccessOrExit(error = InternalHash(point_buffer, point_size));
 
         print_hex("point_buffer-ComputeRoundTwo#1B", (uint8_t *)point_buffer, (int)point_size);
+        ChipLogError(SecureChannel, "Computed in device, used as MacVerify:in at PC");
         print_hex("in-ComputeRoundTwo#1B", (uint8_t *)in, (int)in_len);
 
         MN     = M;
@@ -486,10 +537,38 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     {
         SuccessOrExit(error = FEMul(tempbn, w1, w0));
         SuccessOrExit(error = PointAddMul(V, XY, w1, MN, tempbn));
+
+        // snprintf(str, 180, "\nComputeRoundTwo w1->n %d", ((mbedtls_mpi*)w1)->n);
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo w1->n %d", (int)((mbedtls_mpi*)w1)->n );
+        // ESP_LOGE("ComputeRoundTwo w1->n", "w1->n %d", ((mbedtls_mpi*)w1)->n);
+        print_hex("ComputeRoundTwo w1->p", (uint8_t*)(((mbedtls_mpi*)w1)->p), (int)(((mbedtls_mpi*)w1)->n));
+
+        // snprintf(str, 180, "\nComputeRoundTwo tempbn->n %d", ((mbedtls_mpi*)tempbn)->n);
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo tempbn->n %d", (int)((mbedtls_mpi*)tempbn)->n );
+        // ESP_LOGE("ComputeRoundTwo tempbn->n", "tempbn->n %d", ((mbedtls_mpi*)tempbn)->n);
+        print_hex("ComputeRoundTwo tempbn->p", (uint8_t*)(((mbedtls_mpi*)tempbn)->p), (int)(((mbedtls_mpi*)tempbn)->n));
     }
     else if (role == CHIP_SPAKE2P_ROLE::VERIFIER)
     {
         SuccessOrExit(error = PointMul(V, L, xy));
+
+        // snprintf(str, 180, "\nComputeRoundTwo L->X.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)L)->X).n));
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo L->X.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->X).n) );
+        // ESP_LOGE("ComputeRoundTwo", "L->X.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)L)->X).n) );
+        print_hex("ComputeRoundTwo L->X.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->X).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->X).n));
+        // snprintf(str, 180, "\nComputeRoundTwo L->Y.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)L)->Y).n );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo L->Y.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->Y).n ));
+        // ESP_LOGE("ComputeRoundTwo", "L->Y.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)L)->Y).n) );
+        print_hex("ComputeRoundTwo L->Y.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->Y).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->Y).n));
+        // snprintf(str, 180, "\nComputeRoundTwo L->Z.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)L)->Z).n) );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo L->Z.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->Z).n) );
+        // ESP_LOGE("ComputeRoundTwo", "L->Z.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)L)->Z).n) );
+        print_hex("ComputeRoundTwo L->Z.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->Z).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)L)->Z).n));
     }
 
     // print_hex("Z", Z, (int) hash_size);
@@ -516,7 +595,27 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         ChipLogError(SecureChannel, "\n*** Z = nullptr");
     } else
     {
-        print_hex("Z:", (uint8_t *)Z, 65);
+        // print_hex("Z:", (uint8_t *)Z, 65);
+        // snprintf(str, 180, "\nComputeRoundTwo Z->X.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)Z)->X).n) );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo Z->X.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->X).n) );
+        // ESP_LOGE("ComputeRoundTwo", "Z->X.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)Z)->X).n) );
+        print_hex("ComputeRoundTwo Z->X.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->X).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->X).n));
+        // snprintf(str, 180, "\nComputeRoundTwo Z->Y.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Y).n) );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo Z->Y.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Y).n) );
+        // ESP_LOGE("ComputeRoundTwo", "Z->Y.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Y).n) );
+        print_hex("ComputeRoundTwo Z->Y.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Y).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Y).n));
+        // snprintf(str, 180, "\nComputeRoundTwo Z->Z.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Z).n) );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo Z->Z.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Z).n) );
+        // ESP_LOGE("ComputeRoundTwo", "Z->Z.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Z).n) );
+        print_hex("ComputeRoundTwo Z->Z.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Z).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)Z)->Z).n));
+        
+        // ESP_LOGE("FEGenerate(xy) n", "xy->n %d", ((mbedtls_mpi*)xy)->n);
+        // print_hex("FEGenerate(xy) p", (uint8_t*)(((mbedtls_mpi*)xy)->p), (int)(((mbedtls_mpi*)xy)->n));
+        // ESP_LOGE("FEGenerate(xy) n", "xy->n %d", ((mbedtls_mpi*)xy)->n);
+        // print_hex("FEGenerate(xy) p", (uint8_t*)(((mbedtls_mpi*)xy)->p), (int)(((mbedtls_mpi*)xy)->n));
     }
 
     if(V == nullptr)
@@ -524,7 +623,22 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         ChipLogError(SecureChannel, "\n*** V = nullptr");
     } else
     {
-        print_hex("V:", (uint8_t *)V, 65);
+        // print_hex("V:", (uint8_t *)V, 65);
+        // snprintf(str, 180, "\nComputeRoundTwo V->X.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)V)->X).n) );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo V->X.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->X).n) );
+        // ESP_LOGE("ComputeRoundTwo", "V->X.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)V)->X).n) );
+        print_hex("ComputeRoundTwo V->X.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->X).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->X).n));
+        // snprintf(str, 180, "\nComputeRoundTwo V->Y.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)V)->Y).n) );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo V->Y.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->Y).n) );
+        // ESP_LOGE("ComputeRoundTwo", "V->Y.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)V)->Y).n) );
+        print_hex("ComputeRoundTwo V->Y.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->Y).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->Y).n));
+        // snprintf(str, 180, "\nComputeRoundTwo V->Z.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)V)->Z).n) );
+        // ChipLogError(SecureChannel, str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo V->Z.n %d", (int)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->Z).n) );
+        // ESP_LOGE("ComputeRoundTwo", "V->Z.n %d", (((mbedtls_mpi)((mbedtls_ecp_point*)V)->Z).n) );
+        print_hex("ComputeRoundTwo V->Z.p", (uint8_t*)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->Z).p), (int)(((mbedtls_mpi)((mbedtls_ecp_point*)V)->Z).n));
     }
 
     if(w0 == nullptr)
@@ -532,7 +646,12 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
         ChipLogError(SecureChannel, "\n*** w0 = nullptr");
     } else
     {
-        print_hex("w0:", (uint8_t *)w0, 65);
+        // print_hex("w0:", (uint8_t *)w0, 65);
+        // snprintf(str, 180, "\nComputeRoundTwo w0->n %d", (int)((mbedtls_mpi*)w0)->n );
+        // ChipLogError(SecureChannel, (char *)str);
+        ChipLogError(SecureChannel, "\nComputeRoundTwo w0->n %d", (int)((mbedtls_mpi*)w0)->n );
+        // ESP_LOGE("ComputeRoundTwo w0->n", "w0->n %d", ((mbedtls_mpi*)w0)->n);
+        print_hex("ComputeRoundTwo w0->p", (uint8_t*)(((mbedtls_mpi*)w0)->p), (int)(((mbedtls_mpi*)w0)->n));
     }
 
     SuccessOrExit(error = GenerateKeys());
@@ -573,6 +692,8 @@ CHIP_ERROR Spake2p::KeyConfirm(const uint8_t * in, size_t in_len)
     uint8_t point_buffer[kP256_Point_Length];
     void * XY        = nullptr; // Choose X if a prover, Y if a verifier
     uint8_t * Kcaorb = nullptr; // Choose Kcb if a prover, Kca if a verifier
+
+    print_hex("KeyConfirm:in", (uint8_t*)in, (int)in_len);
 
     VerifyOrReturnError(state == CHIP_SPAKE2P_STATE::R2, CHIP_ERROR_INTERNAL);
 
@@ -654,6 +775,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::HashFinalize(MutableByteSpan & out_spa
 {
     ChipLogError(SecureChannel, "\n___________________ HashFinalize \n");
     ReturnErrorOnFailure(sha256_hash_ctx.Finish(out_span));
+    print_hex("HashFinalize", out_span.data(), (int)out_span.size());
     return CHIP_NO_ERROR;
 }
 
@@ -682,7 +804,7 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::KDF(const uint8_t * ikm, const size_t 
 
     // static int call_count = 0;
     // ChipLogError(SecureChannel, "***** Spake2p_P256_SHA256_HKDF_HMAC::KDF **** %d", call_count++);
-// HARDCODED_BUFFER 4 Randomness
+// HARDCODED_BUFFER Randomness 4
 #if 0
     ReturnErrorOnFailure(mHKDF.HKDF_SHA256(ikm, ikm_len, salt, salt_len, info, info_len, out, out_len));
 #else
