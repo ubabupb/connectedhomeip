@@ -1016,6 +1016,12 @@ CHIP_ERROR Spake2p_P256_SHA256_HKDF_HMAC::InitInternal()
     G     = &context->curve.G;
     order = &context->curve.N;
 
+    ChipLogError(Crypto, "InitInternal: checking nullptr");
+    if(V == nullptr) ChipLogError(Crypto, "InitInternal: V = nullptr");
+    if(Z == nullptr) ChipLogError(Crypto, "InitInternal: Z = nullptr");
+    if(w0 == nullptr) ChipLogError(Crypto, "InitInternal: w0 = nullptr");
+    ChipLogError(Crypto, "InitInternal: -----------------");
+
     return error;
 
 exit:

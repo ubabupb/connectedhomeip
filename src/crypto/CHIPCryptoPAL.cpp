@@ -60,20 +60,6 @@ using namespace chip::ASN1;
 
 #define HEX_BUF_SIZE 500
 
-// #ifdef CHIP_LINUX_DEBUG_MSG_ENABLE
-// #else
-//     #define ESP32
-// #endif
-
-// #ifdef ESP32
-//     #include "esp_log.h"
-// #endif
-
-// extern "C"
-// {
-// void df_debug_hexdump(const char *prefix, const void *data, size_t len);
-// }
-
 void print_hex(const char * txt, uint8_t * data, int len)
 {
     char hex_buf[HEX_BUF_SIZE];
@@ -87,17 +73,6 @@ void print_hex(const char * txt, uint8_t * data, int len)
 
     ChipLogError(SecureChannel, "%s", txt);
     ChipLogError(SecureChannel, "%s", hex_buf);
-// #ifdef ESP32
-//     ESP_LOGE("...:", "_______________________");
-//     ESP_LOGE("...:", "%s", txt);
-//     ESP_LOGE("...:", "%s", hex_buf);
-//     ESP_LOGE("...:", "_______________________");
-// #else
-//     printf("\n...:_______________________\n");
-//     printf("\n...:%s", txt);
-//     printf("\n...:%s", hex_buf);
-//     printf("\n...:_______________________\n");
-// #endif
 }
 
 namespace {
@@ -395,7 +370,7 @@ CHIP_ERROR Spake2p::ComputeRoundOne(const uint8_t * pab, size_t pab_len, uint8_t
     CHIP_ERROR error = CHIP_ERROR_INTERNAL;
     void * MN        = nullptr; // Choose M if a prover, N if a verifier
     void * XY        = nullptr; // Choose X if a prover, Y if a verifier
-    
+
     VerifyOrExit(state == CHIP_SPAKE2P_STATE::STARTED, error = CHIP_ERROR_INTERNAL);
     VerifyOrExit(*out_len >= point_size, error = CHIP_ERROR_INTERNAL);
 
@@ -435,7 +410,6 @@ CHIP_ERROR Spake2p::ComputeRoundTwo(const uint8_t * in, size_t in_len, uint8_t *
     void * MN        = nullptr; // Choose N if a prover, M if a verifier
     void * XY        = nullptr; // Choose Y if a prover, X if a verifier
     uint8_t * Kcaorb = nullptr; // Choose Kca if a prover, Kcb if a verifier
-    // char str[200];
 
     VerifyOrExit(*out_len >= hash_size, error = CHIP_ERROR_INTERNAL);
     VerifyOrExit(state == CHIP_SPAKE2P_STATE::R1, error = CHIP_ERROR_INTERNAL);
@@ -792,11 +766,6 @@ CHIP_ERROR Spake2pVerifier::ComputeWS(uint32_t pbkdf2IterCount, const ByteSpan &
     CHIP_ERROR err = pbkdf2.pbkdf2_sha256(littleEndianSetupPINCode, sizeof(littleEndianSetupPINCode), salt.data(), salt.size(),
                                           pbkdf2IterCount, ws_len, ws);
 
-    // printf("\n---------- ComputeWS endianess 2: %x %x %x %x \n", littleEndianSetupPINCode[0], littleEndianSetupPINCode[1],
-    //                                             littleEndianSetupPINCode[2], littleEndianSetupPINCode[3]);
-    // char str[50];
-    // sprintf(str, "\n%d:%s: %d %d\n", __LINE__, __func__, ws_len, ws);
-    // ChipLogError(SecureChannel, "\n___________________ Xv3\n");
     print_hex("computeWS", ws, ws_len);
     // return pbkdf2.pbkdf2_sha256(littleEndianSetupPINCode, sizeof(littleEndianSetupPINCode), salt.data(), salt.size(),
     //                             pbkdf2IterCount, ws_len, ws);
