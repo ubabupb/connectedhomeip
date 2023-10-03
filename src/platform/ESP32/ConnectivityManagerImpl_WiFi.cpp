@@ -417,16 +417,16 @@ CHIP_ERROR ConnectivityManagerImpl::InitWiFi()
         // if (CONFIG_DEFAULT_WIFI_SSID[0] != 0)
         if (1)
         {
-            ChipLogError(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
-            ChipLogProgress(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
+            ChipLogError(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", TEST_CONFIG_DEFAULT_WIFI_SSID);
+            ChipLogProgress(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", TEST_CONFIG_DEFAULT_WIFI_SSID);
 
             // Set a default station configuration.
             wifi_config_t wifiConfig;
             memset(&wifiConfig, 0, sizeof(wifiConfig));
-            memcpy(wifiConfig.sta.ssid, CONFIG_DEFAULT_WIFI_SSID,
-                   std::min(sizeof(wifiConfig.sta.ssid), strlen(CONFIG_DEFAULT_WIFI_SSID)));
-            memcpy(wifiConfig.sta.password, CONFIG_DEFAULT_WIFI_PASSWORD,
-                   std::min(sizeof(wifiConfig.sta.password), strlen(CONFIG_DEFAULT_WIFI_PASSWORD)));
+            memcpy(wifiConfig.sta.ssid, TEST_CONFIG_DEFAULT_WIFI_SSID,
+                   std::min(sizeof(wifiConfig.sta.ssid), strlen(TEST_CONFIG_DEFAULT_WIFI_SSID)));
+            memcpy(wifiConfig.sta.password, TEST_CONFIG_DEFAULT_WIFI_PASSWORD,
+                   std::min(sizeof(wifiConfig.sta.password), strlen(TEST_CONFIG_DEFAULT_WIFI_PASSWORD)));
             wifiConfig.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
             wifiConfig.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
             esp_err_t err              = esp_wifi_set_config(WIFI_IF_STA, &wifiConfig);
