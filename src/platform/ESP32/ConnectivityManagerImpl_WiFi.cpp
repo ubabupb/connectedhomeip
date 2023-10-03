@@ -385,6 +385,10 @@ CHIP_ERROR ConnectivityManagerImpl::_GetAndLogWiFiStatsCounters(void)
     return CHIP_NO_ERROR;
 }
 
+// #define TEST_CONFIG_DEFAULT_WIFI_SSID "Lekshmi@@"
+#define TEST_CONFIG_DEFAULT_WIFI_SSID "myphone"
+#define TEST_CONFIG_DEFAULT_WIFI_PASSWORD "2345671d"
+
 CHIP_ERROR ConnectivityManagerImpl::InitWiFi()
 {
     mLastStationConnectFailTime   = System::Clock::kZero;
@@ -410,8 +414,10 @@ CHIP_ERROR ConnectivityManagerImpl::InitWiFi()
     if (!IsWiFiStationProvisioned())
     {
         // If the code has been compiled with a default WiFi station provision, configure that now.
-        if (CONFIG_DEFAULT_WIFI_SSID[0] != 0)
+        // if (CONFIG_DEFAULT_WIFI_SSID[0] != 0)
+        if (1)
         {
+            ChipLogError(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
             ChipLogProgress(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
 
             // Set a default station configuration.
